@@ -6,6 +6,7 @@
 #include <iostream>
 #include <vector>
 #include <list>
+#include "type_trails.hpp"
 
 namespace ft
 {
@@ -50,15 +51,16 @@ class vector
         reverse_iterator rbegin() { return reverse_iterator(last); }
         reverse_iterator rend() { return reverse_iterator(first); }
         
-        // template < typename InputIterator >
-        // vector(InputIterator first, InputIterator last, const Allocator & = Allocator())
-        // {
-        //     reserve(std::distance(first, last));
-        //     for (InputIterator i = first; i != last ; ++i)
-        //     {
-        //         push_back(*i);
-        //     }
-        // }
+        template < typename InputIterator >
+        vector(InputIterator first, InputIterator last, const Allocator & = Allocator(),
+        typename ft::enable_if<!ft::is_integral<InputIterator>::value>::type* = NULL)
+        {
+            reserve(std::distance(first, last));
+            for (InputIterator i = first; i != last ; ++i)
+            {
+                push_back(*i);
+            }
+        }
         
         // vector(std::initializer_list<value_type> init, const allocator_type & alloc = allocator_type())
         // : vector( std::begin(init), std::end(init), alloc )
