@@ -62,12 +62,6 @@ class vector
             }
         }
         
-        // vector(std::initializer_list<value_type> init, const allocator_type & alloc = allocator_type())
-        // : vector( std::begin(init), std::end(init), alloc )
-        // {
-            
-        // }
-        
         size_type size() const {
             return cend() - cbegin();
         }
