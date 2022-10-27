@@ -1,5 +1,5 @@
-#ifndef ITERATOR_HPP
-# define ITERATOR_HPP
+#ifndef REVERSE_ITERATOR_HPP
+# define REVERSE_ITERATOR_HPP
 
 #include "iterator_traits.hpp"
 
@@ -32,12 +32,12 @@ public:
     }
     
     reference operator*() const {
-        _Iterator __tmp = _i;
+        Iter __tmp = _i;
         return *--__tmp;
     }
 
     pointer operator->() const {
-        _Iterator __tmp = _i;
+        Iter __tmp = _i;
 	    --__tmp;
         return &(*__tmp);
     }
@@ -83,7 +83,7 @@ public:
     } 
     
     reference operator[](difference_type _n) const {
-        return *(*this + __n);
+        return *(*this + _n);
     }
     
     iterator_type base() const {

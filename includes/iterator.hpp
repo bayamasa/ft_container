@@ -34,11 +34,11 @@ public:
     wrap_iterator() : _i() {};
     wrap_iterator(iterator_type _x) : _i(_x) {};
     wrap_iterator(const wrap_iterator& __x) : _i(__x._i) {};
-    template<class Iter>
-    wrap_iterator(const wrap_iterator<Iter>& __x) : _i(__x._i) {};
+    template<class Up>
+    wrap_iterator(const wrap_iterator<Up>& __x) : _i(__x._i) {};
     
-    template<typename Iter>
-    wrap_iterator& operator=(const wrap_iterator<Iter>& __x) {
+    template<typename Up>
+    wrap_iterator& operator=(const wrap_iterator<Up>& __x) {
         _i = __x._i;
         return *this;
     }
@@ -59,7 +59,7 @@ public:
     wrap_iterator operator++(int) {
         wrap_iterator _tmp(*this);
         ++(*this);
-        return __tmp;
+        return _tmp;
     }
     
     wrap_iterator& operator--() {
@@ -135,12 +135,12 @@ public:
     
     template <class Iter1>
     bool operator>=(const wrap_iterator<Iter1>& _x, const wrap_iterator<Iter1>& _y) {
-        return !(__x < __y);
+        return !(_x < _y);
     }
     
     template <class Iter1, class Iter2>
     bool operator>=(const wrap_iterator<Iter1>& _x, const wrap_iterator<Iter2>& _y) {
-        return !(__x < __y);
+        return !(_x < _y);
     }
     
     template <class Iter1>

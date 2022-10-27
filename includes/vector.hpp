@@ -2,6 +2,7 @@
 # define VECTOR_HPP
 
 #include <exception>
+#include <memory>
 #include "type_traits.hpp"
 #include "iterator.hpp"
 #include "reverse_iterator.hpp"
@@ -22,8 +23,8 @@ class vector
         typedef typename allocator_type::pointer         pointer;
         typedef typename allocator_type::const_pointer   const_pointer;
     
-        typedef ft::iterator<pointer>          iterator;
-        typedef ft::iterator<const_pointer>    const_iterator;
+        typedef ft::wrap_iterator<pointer>          iterator;
+        typedef ft::wrap_iterator<const_pointer>    const_iterator;
         typedef ft::reverse_iterator<iterator> reverse_iterator;
         typedef ft::reverse_iterator<const_iterator> const_reverse_iterator;
         
