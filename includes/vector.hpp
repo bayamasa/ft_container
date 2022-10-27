@@ -6,7 +6,7 @@
 #include <iostream>
 #include <vector>
 #include <list>
-#include "type_trails.hpp"
+#include "type_traits.hpp"
 #include <iterator>
 
 namespace ft

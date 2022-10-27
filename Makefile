@@ -1,9 +1,10 @@
-SRCS			= main.cpp 
+SRCS			= main_exp.cpp 
 OBJS			= $(SRCS:.cpp=.o)
 
 CXX				= c++
 RM				= rm -f
-CXXFLAGS		= -Wall -Wextra -Werror -I. -std=c++98 -pedantic -Wshadow 
+CXXFLAGS		= -Wall -Wextra -Werror -I $(INC) -std=c++98 -pedantic -Wshadow 
+INC				= ./includes
 TESTFLAGS		= -DREAL
 
 NAME			= a.out
