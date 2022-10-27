@@ -15,7 +15,8 @@ int main(void)
     // printf("hello world");
     // sleep(5);
     // fsync(fd);
-    if (read(fd, &test, 4) == -1)
+    lseek(fd, 0, SEEK_SET);
+    if (read(fd, &test, 4) == -1) //test
     {
         printf("read error");
     }
