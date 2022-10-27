@@ -1,13 +1,10 @@
-#include <memory>
+#ifndef VECTOR_HPP
+# define VECTOR_HPP
+
 #include <exception>
-#include <cstddef>
-#include <initializer_list>
-#include <iterator>
-#include <iostream>
-#include <vector>
-#include <list>
 #include "type_traits.hpp"
-#include <iterator>
+#include "iterator.hpp"
+#include "reverse_iterator.hpp"
 
 namespace ft
 {
@@ -20,29 +17,28 @@ class vector
         typedef value_type &                    reference;
         typedef const value_type &              const_reference;
         
-        typedef allocator_type::size_type       size_type;
-        typedef allocator_type::difference_type difference_type;
-        typedef allocator_type::pointer         pointer;
-        typedef allocator_type::const_pointer   const_pointer;
+        typedef typename allocator_type::size_type       size_type;
+        typedef typename allocator_type::difference_type difference_type;
+        typedef typename allocator_type::pointer         pointer;
+        typedef typename allocator_type::const_pointer   const_pointer;
     
-        typedef wrap_iterator<pointer>          iterator;
-        typedef wrap_iterator<const_pointer>    const_iterator;
-        typedef std::reverse_iterator<iterator> reverse_iterator;
-        typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
-               
-        vector(size_type n = 0, allocator_type a = allocator_type()) {};
-        vector(const allocator_type & alloc) : alloc(alloc) {};
-        vector() : vector( allocator_type()) {};
-        vector(size_type size, const allocator_type & alloc = allocator_type()){
-            resize(size);
-        };
-        vector(size_type size, const_reference value, const allocator_type & alloc = allocator_type()){
+        typedef ft::iterator<pointer>          iterator;
+        typedef ft::iterator<const_pointer>    const_iterator;
+        typedef ft::reverse_iterator<iterator> reverse_iterator;
+        typedef ft::reverse_iterator<const_iterator> const_reverse_iterator;
+        
+        vector() {};
+        
+        explicit vector(const allocator_type & alloc) : alloc(alloc) {};
+        
+        explicit vector(size_type size, const_reference value, const allocator_type & alloc = allocator_type()) : alloc(alloc){
             resize(size, value);
         };
-            
+        
+        // vector (const vector & x);
+    
         
         ~vector(){};
-        vector (const vector & x);
         vector & operator =(const vector & x);
         
         iterator begin() { return first; }
@@ -122,7 +118,7 @@ class vector
         void construct(pointer ptr, const_reference value) {
             traits::construct(alloc, ptr, value);
         }
-        void construct(pointer ptr, value_type && value) {
+        void construct(pointer ptr, value_type & value) {
             traits::construct(alloc, ptr, std::move(value));
         }
         
@@ -249,3 +245,4 @@ class vector
 
 }
 
+#endif

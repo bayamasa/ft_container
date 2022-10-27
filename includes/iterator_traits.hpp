@@ -1,5 +1,5 @@
-#ifndef ITERATOR_HPP
-# define ITERATOR_HPP
+#ifndef ITERATOR_TRAITS_HPP
+# define ITERATOR_TRAITS_HPP
 
 namespace ft {
     
@@ -46,8 +46,6 @@ namespace ft {
         typedef const T& reference;
         typedef ft::random_access_iterator_tag iterator_category;
     };
-    
-    
 }
 
 #endif
