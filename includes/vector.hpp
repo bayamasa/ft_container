@@ -221,15 +221,6 @@ class vector
         
         typedef std::allocator_traits<allocator_type> __alloc_traits;
         
-        // Called by constructors to check initial size.
-        size_type __check_init_len(size_type __n, const allocator_type & __a) {
-            if (__n > max_size(__a))
-                throw std::length_error("cannot create ft::vector larger than max_size()");
-            return __n;
-        }
-        
-
-        
         template <class _ForwardIterator, class _Size, class _T>
         _ForwardIterator
         __uninitialized_fill_n(_ForwardIterator __first, _Size __n, const _T & __x)
