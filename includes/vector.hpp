@@ -9,7 +9,7 @@
 
 namespace ft
 {
-    template <typename T, typename Allocator = std::allocator<T> >
+    template <class T, class Allocator = std::allocator<T> >
 class vector
 {
     public: 
@@ -28,99 +28,63 @@ class vector
         typedef ft::reverse_iterator<iterator> reverse_iterator;
         typedef ft::reverse_iterator<const_iterator> const_reverse_iterator;
         
-        vector() {};
+        explicit vector(const Allocator& a = Allocator()) : alloc(a){};
         
-        explicit vector(const allocator_type & alloc) : alloc(alloc) {};
-        
-        explicit vector(size_type size, const_reference value, const allocator_type & alloc = allocator_type()) : alloc(alloc){
-            resize(size, value);
+        explicit vector(size_type n, const T& value = T(),
+                const Allocator& a = Allocator()) : alloc(a)
+        {
+            resize(n, value);
+        }
+        template <class InputIter>
+        vector(InputIter first, InputIter last,
+                const Allocator& a = Allocator(),
+                typename ft::enable_if<!ft::is_integral<InputIter>::value>::type* = NULL) : alloc(a)
+        {
+            reserve(std::distance(first, last));
+            for (InputIter i = first; i != last ; ++i)
+            {
+                push_back(*i);
+            }
         };
         
-        // vector (const vector & x);
-    
-        
+        vector (const vector & x);
         ~vector(){};
         vector & operator =(const vector & x);
         
         iterator begin() { return first; }
-        const_iterator cbegin() const { return first; }
+        const_iterator begin() const { return first; }
         iterator end() { return last; }
-        const_iterator cend() const { return last; }
+        const_iterator end() const { return last; }
         
         reverse_iterator rbegin() { return reverse_iterator(last); }
+        const_reverse_iterator rbegin() const { return reverse_iterator(last); }
         reverse_iterator rend() { return reverse_iterator(first); }
-        
-        template < typename InputIterator >
-        vector(InputIterator first, InputIterator last, const Allocator & = Allocator(),
-        typename ft::enable_if<!ft::is_integral<InputIterator>::value>::type* = NULL)
-        {
-            reserve(std::distance(first, last));
-            for (InputIterator i = first; i != last ; ++i)
-            {
-                push_back(*i);
-            }
-        }
+        const_reverse_iterator rend() const { return reverse_iterator(first); }
         
         size_type size() const {
-            return cend() - cbegin();
+            return end() - begin();
         }
-        
-        bool empty() const {
-            return size() == 0;
+        size_type max_size() const;
+                    
+        void resize(size_type sz, value_type c = value_type()) {
+            if (sz < size()) {
+                size_type diff = size() - sz;
+                destroy_until(rbegin() + diff);
+                last = first + sz;
+            } else if ( sz > size()) {
+                reserve(sz);
+                for (; last != reserved_last; ++last) {
+                    construct(last, c);
+                }
+            }
         }
         
         size_type capacity() const {
             return reserved_last - first;
         }
         
-        reference operator [](size_type i) {
-            return first[i];
-        }
-        const_reference operator [](size_type i) const {
-            return first[i];
-        }
-        
-        reference at(size_type i) {
-            if (i >= size())
-                throw std::out_of_range("index is out of range.");
-            return first[i];
-        }
-        
-        const_reference at(size_type i) const {
-            if (i >= size())
-                throw std::out_of_range("index is out of range.");
-            return first[i];
-        }
-        reference front()
-        { return first; }
-
-        const_reference front() const
-        { return first; }
-
-        reference back()
-        { return last - 1; }
-
-        const_reference back() const
-        { return last - 1; }
-        
-        pointer data()
-        { return first; }
-
-        const_pointer data() const
-        { return first; }
-        
-        void clear() {
-            destroy_until(rend());
-        }
-        
-        void construct(pointer ptr) {
-            traits::construct(alloc, ptr);
-        }
-        void construct(pointer ptr, const_reference value) {
-            traits::construct(alloc, ptr, value);
-        }
-        void construct(pointer ptr, value_type & value) {
-            traits::construct(alloc, ptr, std::move(value));
+        bool empty() const {
+            return size() == 0;
         }
         
         void reserve(size_type sz) {
@@ -150,32 +114,49 @@ class vector
               // 古いストレージの破棄
             traits::deallocate(alloc, old_first, old_capacity);
         }
-            
-        void resize(size_type sz) {
-            if (sz < size()) {
-                size_type diff = size() - sz;
-                destroy_until(rbegin() + diff);
-                last = first + sz;
-            } else if ( sz > size()) {
-                reserve(sz);
-                for (; last != reserved_last; ++last) {
-                    construct(last);
-                }
-            }
+        
+        reference operator [](size_type i) {
+            return first[i];
+        }
+        const_reference operator [](size_type i) const {
+            return first[i];
         }
         
-        void resize(size_type sz, const_reference value) {
-            if (sz < size()) {
-                size_type diff = size() - sz;
-                destroy_until(rbegin() + diff);
-                last = first + sz;
-            } else if ( sz > size()) {
-                reserve(sz);
-                for (; last != reserved_last; ++last) {
-                    construct(last, value);
-                }
-            }
+        reference at(size_type i) {
+            if (i >= size())
+                throw std::out_of_range("index is out of range.");
+            return first[i];
         }
+        
+        const_reference at(size_type i) const {
+            if (i >= size())
+                throw std::out_of_range("index is out of range.");
+            return first[i];
+        }
+        
+        pointer data()
+        { return first; }
+
+        const_pointer data() const
+        { return first; }
+        
+        reference front()
+        { return first; }
+
+        const_reference front() const
+        { return first; }
+
+        reference back()
+        { return last - 1; }
+
+        const_reference back() const
+        { return last - 1; }
+        
+        template <class InputIterator>
+        void assign(InputIterator first, InputIterator last); 
+        
+        void assign(size_type n, const T& u);
+        
         
         void push_back(const_reference value) {
             // 予約メモリーが足りなければ拡張
@@ -188,7 +169,6 @@ class vector
                 else
                     // それ以外の場合は2倍する
                     c *= 2 ;
-
                 reserve( c ) ;
             }
             
@@ -196,23 +176,39 @@ class vector
             ++last;
         }
         
-        void shrink_to_fit() {
-            if (size() == capacity())
-                return;
-            pointer ptr = allocate(size());
-            size_type current_size = size();
-            
-            for (pointer raw_ptr = ptr, iter = begin(), iter_end = end();
-                iter != iter_end; ++iter, ++raw_ptr) {
-                    construct(raw_ptr, *iter);
-                }
-            clear();
-            deallocate();
-            first = ptr;
-            last = ptr + current_size;
-            reserved_last = last;
+        void pop_back();
+        
+        iterator insert(iterator position, const T& x);
+        
+        void insert(iterator position,
+            size_type n, const T& x);    
+        
+        template <class InputIterator>
+        void insert(iterator position,
+            InputIterator first,
+            InputIterator last);
+
+        iterator erase(iterator position);
+        iterator erase(iterator first, iterator last);
+        
+        void swap(vector& x);
+        
+        void clear() {
+            destroy_until(rend());
         }
-             
+        
+        allocator_type get_allocator() const;
+        
+        void construct(pointer ptr) {
+            traits::construct(alloc, ptr);
+        }
+        void construct(pointer ptr, const_reference value) {
+            traits::construct(alloc, ptr, value);
+        }
+        void construct(pointer ptr, value_type & value) {
+            traits::construct(alloc, ptr, std::move(value));
+        }
+        
     private: 
         // 先頭の要素へのポインター
         pointer first;
