@@ -150,19 +150,14 @@ class vector
         void push_back(const_reference value) {
             // 予約メモリーが足りなければ拡張
             if (size() + 1 > capacity()) {
-                // 現在のストレージサイズ
-                size_type c = size();
-                // 0の場合は1に
-                if ( c == 0 )
-                    c = 1 ;
-                else
-                    // それ以外の場合は2倍する
-                    c *= 2 ;
-                reserve( c ) ;
+                __realloc_insert(end(), value);
+            }
+            else
+            {
+                construct(__finish_, value);
+                ++__finish_;
             }
             
-            construct(__finish_, value);
-            ++__finish_;
         }
         
         void pop_back();
@@ -288,10 +283,8 @@ class vector
         }
         
         void __deallocate(pointer __first, size_type __n) {
-            __alloc.deallocate(__first, __n);
+            __alloc_.deallocate(__first, __n);
         }
-
-
 
         void destroy(pointer ptr) {
             __alloc_traits::destroy(__alloc_, ptr);
@@ -301,8 +294,44 @@ class vector
                 destroy(&*riter);
             }
         }
-        void __realloc_insert()
+        void __realloc_insert(iterator __position, const_reference __x) {
+            const size_type __len = 
+                __check_len(size_type(1), "vector::realloc_insert");
+            pointer __old_start = __start_;
+            pointer __old_finish = __finish_;
+            const size_type __elems_before = __position - begin();
+            // 箱のメモリ確保
+            pointer __new_start = __alloc_.allocate(__len);
+            pointer __new_finish = __new_start;
+            try
+            {
+                // 要素のメモリ確保
+                __alloc_.construct(__new_start + __elems_before, __x);
+                __new_finish = __uninitialized_copy(__old_start, __position.base(), __new_start);
+                ++__new_finish;
+                __new_finish = __uninitialized_copy(__position.base(), __old_finish, __new_finish);
+            }
+            catch(...)
+            {
+                if (!__new_finish)
+                    __alloc_.destroy(__new_start + __elems_before);
+                else 
+                    __alloc_.destroy(__new_start + __new_finish);
+                __deallocate(__new_start, __len);
+                throw;
+            }
+            
+            
+        }
         
+        size_type __check_len(size_type __n, const char *__s) const {
+            if (max_size() - size() < __n)
+                throw std::length_error(__s);
+            // sizeの2倍取る
+            const size_type __len = size() + (std::max)(size(), __n);
+            // オーバーフローしてたら、max_size適用
+            return (__len < size() || __len > max_size()) ? max_size() : __len;
+        }
         
 };
 
