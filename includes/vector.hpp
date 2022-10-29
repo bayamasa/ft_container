@@ -63,7 +63,7 @@ class vector
         const_reverse_iterator rend() const { return reverse_iterator(__start_); }
         
         size_type size() const {
-            return end() - begin();
+            return size_type(__finish_ - __start_);
         }
         size_type max_size() const{
             return std::min<size_type>(__alloc_.max_size(),
@@ -84,40 +84,24 @@ class vector
         }
         
         size_type capacity() const {
-            return __end_of_storage_ - __start_;
+            return size_type(__end_of_storage_ - __start_);
         }
         
         bool empty() const {
             return size() == 0;
         }
         
-        void reserve(size_type sz) {
-            if (sz <= capacity())
-                return ;
-            // 動的メモリの確保
-            pointer ptr = NULL;
-            __vallocate(sz);
-            
-            // 古いストレージ情報を保存
-            pointer old_first = __start_;
-            pointer old_last = __finish_;
-            size_type old_capacity = capacity(); 
-            
-            // 新しいストレージに差し替え
-            __start_ = ptr;
-            __finish_ = __start_;
-            __end_of_storage_ = __start_ + sz;
-            
-            // 古いストレージから新しいストレージに要素を差し替え
-            for (pointer old_iter = old_first; old_iter != old_last; ++old_iter, ++__finish_) {
-                construct(__finish_, std::move(*old_iter));
+        void reserve(size_type __n) {
+            if (__n > max_size())
+                throw std::length_error("vector::reserve");
+            if (capacity() < __n) {
+                const size_type __old_size = size();
+                pointer __tmp = __allocate_and_copy(__n, __start_, __finish_);
+                __deallocate(__start_, __end_of_storage_ - __start_);
+                __start_ = __tmp;
+                __finish_ = __tmp + __old_size;
+                __end_of_storage_ = __start_ + __n;
             }
-            for (reverse_iterator riter = reverse_iterator(old_last), rend = reverse_iterator(old_first);
-                    riter != rend; ++riter) {
-                destroy(&*riter);            
-            }
-              // 古いストレージの破棄
-            __alloc_traits::deallocate(__alloc_, old_first, old_capacity);
         }
         
         reference operator [](size_type i) {
@@ -235,8 +219,24 @@ class vector
                 throw;
             }
         }
+        template<typename _ForwardIterator>
+        pointer __allocate_and_copy(size_type __n,
+                        _ForwardIterator __first, _ForwardIterator __last)
+        {
+            pointer __result = __alloc_.allocate(__n);
+            try
+            {
+                __uninitialized_copy(__first, __last, __result);
+                return __result;
+            }
+            catch(...)
+            {
+                __deallocate(__first, __n);
+                throw;
+            }
+        }
         
-        template <typename _InputIterator, typename _ForwardIterator>
+        template<typename _InputIterator, typename _ForwardIterator>
         _ForwardIterator __uninitialized_copy(_InputIterator __first, _InputIterator __last, 
                 _ForwardIterator __result)
         {
@@ -286,10 +286,12 @@ class vector
             __finish_ = __start_;
             __end_of_storage_ = __start_ + __n;
         }
+        
+        void __deallocate(pointer __first, size_type __n) {
+            __alloc.deallocate(__first, __n);
+        }
 
-        void deallocate() {
-            __alloc_traits::deallocate(__alloc_, __start_, capacity());
-        };
+
 
         void destroy(pointer ptr) {
             __alloc_traits::destroy(__alloc_, ptr);
@@ -299,6 +301,7 @@ class vector
                 destroy(&*riter);
             }
         }
+        void __realloc_insert()
         
         
 };
