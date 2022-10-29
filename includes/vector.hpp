@@ -5,6 +5,7 @@
 #include <memory>
 #include "type_traits.hpp"
 #include "iterator.hpp"
+#include "iterator_traits.hpp"
 #include "reverse_iterator.hpp"
 #include <deque>
 #include <limits>
@@ -38,16 +39,13 @@ class vector
             __vallocate(__n);            
             __last_ = __uninitialized_fill_n(__first_, __n, __value);
         }
-        template <class InputIter>
-        vector(InputIter first, InputIter last,
-                const Allocator& a = Allocator(),
-                typename ft::enable_if<!ft::is_integral<InputIter>::value>::type* = NULL) : __alloc_(a)
+        template <class _InputIter>
+        vector(_InputIter __first, _InputIter __last,
+                const Allocator& __a = Allocator(),
+                typename ft::enable_if<!ft::is_integral<_InputIter>::value>::type* = NULL) 
+                : __alloc_(__a)
         {
-            reserve(std::distance(first, last));
-            for (InputIter i = first; i != last ; ++i)
-            {
-                push_back(*i);
-            }
+            __range_initialize(__first, __last, iterator_traits<_InputIter>::iterator_category);
         };
         
         vector(const vector & x);
@@ -238,6 +236,49 @@ class vector
             }
         }
         
+        template <typename _InputIterator, typename _ForwardIterator>
+        _ForwardIterator __uninitialized_copy(_InputIterator __first, _InputIterator __last, 
+                _ForwardIterator __result)
+        {
+            _ForwardIterator __cur = __result;
+            try {
+                for (; __first != __last; ++__first, (void)++__cur) {
+                    __alloc_.construct(__cur, *__first);
+                }
+                return __cur;
+            } catch(...) {
+                for (; __cur != __result; (void)++__result) 
+                    __alloc_.destroy(__result);
+                throw;
+            }
+        }
+        
+        
+        template<typename _InputIterator>
+        void __range_initialize(_InputIterator __first, _InputIterator __last, 
+                            std::input_iterator_tag)
+        {
+            try {
+                for (; __first != __last; ++__first)
+                    push_back(*__first);
+            } catch(...) {
+                clear();
+                throw;
+            }
+        }
+        
+        template<typename _ForwardIterator>
+        void __range_initialize(_ForwardIterator __first, _ForwardIterator __last, 
+                            std::forward_iterator_tag)
+        {
+            const size_type __n = std::distance(__first, __last);
+            if (__n > max_size())
+                throw std::length_error("cannot create ft::vector larger than max_size()");
+            __first_ = __alloc_.allocate(__n);
+            __end_of_storage_ = __first_ + __n;
+            __last_ = __uninitialized_copy(__first, __last, __first_);
+        }
+        
         void __vallocate(size_type __n) {
             if (__n > max_size())
                 throw std::length_error("cannot create ft::vector larger than max_size()");
@@ -245,6 +286,7 @@ class vector
             __last_ = __first_;
             __end_of_storage_ = __first_ + __n;
         }
+
         void deallocate() {
             __alloc_traits::deallocate(__alloc_, __first_, capacity());
         };
