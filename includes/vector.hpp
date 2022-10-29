@@ -37,7 +37,7 @@ class vector
                 const Allocator& __a = Allocator()) : __alloc_(__a)
         {
             __vallocate(__n);            
-            __last_ = __uninitialized_fill_n(__first_, __n, __value);
+            __finish_ = __uninitialized_fill_n(__start_, __n, __value);
         }
         template <class _InputIter>
         vector(_InputIter __first, _InputIter __last,
@@ -52,15 +52,15 @@ class vector
         ~vector(){};
         vector & operator =(const vector & x);
         
-        iterator begin() { return __first_; }
-        const_iterator begin() const { return __first_; }
-        iterator end() { return __last_; }
-        const_iterator end() const { return __last_; }
+        iterator begin() { return __start_; }
+        const_iterator begin() const { return __start_; }
+        iterator end() { return __finish_; }
+        const_iterator end() const { return __finish_; }
         
-        reverse_iterator rbegin() { return reverse_iterator(__last_); }
-        const_reverse_iterator rbegin() const { return reverse_iterator(__last_); }
-        reverse_iterator rend() { return reverse_iterator(__first_); }
-        const_reverse_iterator rend() const { return reverse_iterator(__first_); }
+        reverse_iterator rbegin() { return reverse_iterator(__finish_); }
+        const_reverse_iterator rbegin() const { return reverse_iterator(__finish_); }
+        reverse_iterator rend() { return reverse_iterator(__start_); }
+        const_reverse_iterator rend() const { return reverse_iterator(__start_); }
         
         size_type size() const {
             return end() - begin();
@@ -74,17 +74,17 @@ class vector
             if (sz < size()) {
                 size_type diff = size() - sz;
                 destroy_until(rbegin() + diff);
-                __last_ = __first_ + sz;
+                __finish_ = __start_ + sz;
             } else if ( sz > size()) {
                 reserve(sz);
-                for (; __last_ != __end_of_storage_; ++__last_) {
-                    construct(__last_, c);
+                for (; __finish_ != __end_of_storage_; ++__finish_) {
+                    construct(__finish_, c);
                 }
             }
         }
         
         size_type capacity() const {
-            return __end_of_storage_ - __first_;
+            return __end_of_storage_ - __start_;
         }
         
         bool empty() const {
@@ -99,18 +99,18 @@ class vector
             __vallocate(sz);
             
             // 古いストレージ情報を保存
-            pointer old_first = __first_;
-            pointer old_last = __last_;
+            pointer old_first = __start_;
+            pointer old_last = __finish_;
             size_type old_capacity = capacity(); 
             
             // 新しいストレージに差し替え
-            __first_ = ptr;
-            __last_ = __first_;
-            __end_of_storage_ = __first_ + sz;
+            __start_ = ptr;
+            __finish_ = __start_;
+            __end_of_storage_ = __start_ + sz;
             
             // 古いストレージから新しいストレージに要素を差し替え
-            for (pointer old_iter = old_first; old_iter != old_last; ++old_iter, ++__last_) {
-                construct(__last_, std::move(*old_iter));
+            for (pointer old_iter = old_first; old_iter != old_last; ++old_iter, ++__finish_) {
+                construct(__finish_, std::move(*old_iter));
             }
             for (reverse_iterator riter = reverse_iterator(old_last), rend = reverse_iterator(old_first);
                     riter != rend; ++riter) {
@@ -121,41 +121,41 @@ class vector
         }
         
         reference operator [](size_type i) {
-            return __first_[i];
+            return __start_[i];
         }
         const_reference operator [](size_type i) const {
-            return __first_[i];
+            return __start_[i];
         }
         
         reference at(size_type i) {
             if (i >= size())
                 throw std::out_of_range("index is out of range.");
-            return __first_[i];
+            return __start_[i];
         }
         
         const_reference at(size_type i) const {
             if (i >= size())
                 throw std::out_of_range("index is out of range.");
-            return __first_[i];
+            return __start_[i];
         }
         
         pointer data()
-        { return __first_; }
+        { return __start_; }
 
         const_pointer data() const
-        { return __first_; }
+        { return __start_; }
         
         reference front()
-        { return __first_; }
+        { return __start_; }
 
         const_reference front() const
-        { return __first_; }
+        { return __start_; }
 
         reference back()
-        { return __last_ - 1; }
+        { return __finish_ - 1; }
 
         const_reference back() const
-        { return __last_ - 1; }
+        { return __finish_ - 1; }
         
         template <class InputIterator>
         void assign(InputIterator first, InputIterator last); 
@@ -177,8 +177,8 @@ class vector
                 reserve( c ) ;
             }
             
-            construct(__last_, value);
-            ++__last_;
+            construct(__finish_, value);
+            ++__finish_;
         }
         
         void pop_back();
@@ -212,8 +212,8 @@ class vector
         }
         
     private: 
-        pointer __first_;
-        pointer __last_;
+        pointer __start_;
+        pointer __finish_;
         pointer __end_of_storage_;
         allocator_type __alloc_;
         
@@ -274,28 +274,28 @@ class vector
             const size_type __n = std::distance(__first, __last);
             if (__n > max_size())
                 throw std::length_error("cannot create ft::vector larger than max_size()");
-            __first_ = __alloc_.allocate(__n);
-            __end_of_storage_ = __first_ + __n;
-            __last_ = __uninitialized_copy(__first, __last, __first_);
+            __start_ = __alloc_.allocate(__n);
+            __end_of_storage_ = __start_ + __n;
+            __finish_ = __uninitialized_copy(__first, __last, __start_);
         }
         
         void __vallocate(size_type __n) {
             if (__n > max_size())
                 throw std::length_error("cannot create ft::vector larger than max_size()");
-            __first_ = __alloc_.allocate(__n);
-            __last_ = __first_;
-            __end_of_storage_ = __first_ + __n;
+            __start_ = __alloc_.allocate(__n);
+            __finish_ = __start_;
+            __end_of_storage_ = __start_ + __n;
         }
 
         void deallocate() {
-            __alloc_traits::deallocate(__alloc_, __first_, capacity());
+            __alloc_traits::deallocate(__alloc_, __start_, capacity());
         };
 
         void destroy(pointer ptr) {
             __alloc_traits::destroy(__alloc_, ptr);
         }
         void destroy_until(reverse_iterator rend) {
-            for (reverse_iterator riter = rbegin(); riter != rend; ++riter, --__last_) {
+            for (reverse_iterator riter = rbegin(); riter != rend; ++riter, --__finish_) {
                 destroy(&*riter);
             }
         }
