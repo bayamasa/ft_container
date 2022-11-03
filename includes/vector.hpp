@@ -191,10 +191,10 @@ class vector
         }
         
     private: 
-        pointer __start_;
-        pointer __finish_;
-        pointer __end_of_storage_;
-        allocator_type __alloc_;
+        pointer __start_ = NULL;
+        pointer __finish_ = NULL;
+        pointer __end_of_storage_ = NULL;
+        allocator_type __alloc_ = NULL;
         
         typedef std::allocator_traits<allocator_type> __alloc_traits;
         
