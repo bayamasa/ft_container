@@ -31,10 +31,12 @@ class vector
         typedef ft::reverse_iterator<iterator> reverse_iterator;
         typedef ft::reverse_iterator<const_iterator> const_reverse_iterator;
         
-        explicit vector(const Allocator& a = Allocator()) : __alloc_(a){};
+        explicit vector(const Allocator& a = Allocator()) 
+        :  __start_(NULL), __finish_(NULL), __end_of_storage_(NULL), __alloc_(a){};
         
         explicit vector(size_type __n, const_reference __value = T(),
-                const Allocator& __a = Allocator()) : __alloc_(__a)
+                const Allocator& __a = Allocator())
+        : __start_(NULL), __finish_(NULL), __end_of_storage_(NULL), __alloc_(__a)
         {
             __vallocate(__n);            
             __finish_ = __uninitialized_fill_n(__start_, __n, __value);
@@ -43,7 +45,7 @@ class vector
         vector(_InputIter __first, _InputIter __last,
                 const Allocator& __a = Allocator(),
                 typename ft::enable_if<!ft::is_integral<_InputIter>::value>::type* = NULL) 
-                : __alloc_(__a)
+        : __start_(NULL), __finish_(NULL), __end_of_storage_(NULL),__alloc_(__a)
         {
             __range_initialize(__first, __last, iterator_traits<_InputIter>::iterator_category);
         };
@@ -191,10 +193,10 @@ class vector
         }
         
     private: 
-        pointer __start_ = NULL;
-        pointer __finish_ = NULL;
-        pointer __end_of_storage_ = NULL;
-        allocator_type __alloc_ = NULL;
+        pointer __start_;
+        pointer __finish_;
+        pointer __end_of_storage_;
+        allocator_type __alloc_;
         
         typedef std::allocator_traits<allocator_type> __alloc_traits;
         
