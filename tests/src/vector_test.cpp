@@ -1,10 +1,27 @@
 #include "vector.hpp"
 
 #include <vector>
+#include <iostream>
 #include <gtest/gtest.h>
 
 template <typename T, typename Allocator>
-void expect_eq_attrs(std::vector<T, Allocator>& stl, ft::vector<T, Allocator>& ft) {
+void debug_print(std::vector<T, Allocator>& stl, ft::vector<T, Allocator>& ft)
+{
+  std::cout << "stl size: " << stl.size() << std::endl;
+  std::cout << "ft size: " << ft.size() << std::endl;
+  std::cout << "stl max size: " << stl.max_size() << std::endl;
+  std::cout << "ft max size: " << ft.max_size() << std::endl;
+  typename std::vector<T, Allocator>::iterator stl_it = stl.begin();
+  typename ft::vector<T, Allocator>::iterator ft_it = ft.begin();
+
+  while (stl_it != stl.end()) {
+    std::cout << "stl value: " << *stl_it++ << std::endl;
+    std::cout << "ft value: " << *ft_it++ << std::endl;
+  }
+}
+
+template <typename T, typename Allocator>
+void expect_eq_vector(std::vector<T, Allocator>& stl, ft::vector<T, Allocator>& ft) {
   typename std::vector<T, Allocator>::iterator stl_it = stl.begin();
   typename ft::vector<T, Allocator>::iterator ft_it = ft.begin();
 
@@ -16,10 +33,20 @@ void expect_eq_attrs(std::vector<T, Allocator>& stl, ft::vector<T, Allocator>& f
   EXPECT_EQ(stl.size(), ft.size());
   EXPECT_EQ(stl.max_size(), ft.max_size());
   EXPECT_EQ(stl.empty(), ft.empty());
+  debug_print(stl, ft);
 }
 
 TEST(Vector, DefaultConstructor) {
     std::vector<int> stl;
     ft::vector<int> ft;
-    expect_eq_attrs(stl, ft);
+    expect_eq_vector(stl, ft);
+}
+
+TEST(Vector, FillConstructor) {
+    size_t size = 10;
+    int value = 5;
+    std::vector<int> stl(10, 5);
+    ft::vector<int> ft(10, 5);
+    
+    expect_eq_vector(stl, ft);
 }
