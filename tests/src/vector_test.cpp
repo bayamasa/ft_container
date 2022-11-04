@@ -24,7 +24,7 @@ void debug_print(std::vector<T, Allocator>& stl, ft::vector<T, Allocator>& ft)
 }
 
 template <typename T, typename Allocator>
-void expect_eq_vector(std::vector<T, Allocator>& stl, ft::vector<T, Allocator>& ft) {
+void expect_eq_stl_to_ft(std::vector<T, Allocator>& stl, ft::vector<T, Allocator>& ft) {
   typename std::vector<T, Allocator>::iterator stl_it = stl.begin();
   typename ft::vector<T, Allocator>::iterator ft_it = ft.begin();
 
@@ -37,10 +37,26 @@ void expect_eq_vector(std::vector<T, Allocator>& stl, ft::vector<T, Allocator>& 
   EXPECT_EQ(stl.empty(), ft.empty());
 }
 
+template <typename T, typename Allocator>
+void expect_eq_ft(ft::vector<T, Allocator>& ft_1, ft::vector<T, Allocator>& ft_2) {
+  typename ft::vector<T, Allocator>::iterator ft_it_1 = ft_1.begin();
+  typename ft::vector<T, Allocator>::iterator ft_it_2 = ft_2.begin();
+
+  while (ft_it_1 != ft_1.end()) {
+    EXPECT_EQ(*ft_it_1++, *ft_it_2++);
+  }
+  EXPECT_TRUE(ft_it_2 == ft_2.end());
+  EXPECT_EQ(ft_1.size(), ft_2.size());
+  EXPECT_EQ(ft_1.max_size(), ft_2.max_size());
+  EXPECT_EQ(ft_1.empty(), ft_2.empty());
+  EXPECT_EQ(ft_1.capacity(), ft_2.capacity());
+}
+
+
 TEST(Vector, DefaultConstructor) {
     std::vector<int> stl;
     ft::vector<int> ft;
-    expect_eq_vector(stl, ft);
+    expect_eq_stl_to_ft(stl, ft);
 }
 
 TEST(Vector, FillConstructor) {
@@ -49,7 +65,7 @@ TEST(Vector, FillConstructor) {
     std::vector<int> stl(size, value);
     ft::vector<int> ft(size, value);
     
-    expect_eq_vector(stl, ft);
+    expect_eq_stl_to_ft(stl, ft);
 }
 
 TEST(Vector, RangeConstructor_InputIterator) {
@@ -63,7 +79,7 @@ TEST(Vector, RangeConstructor_InputIterator) {
     ft::vector<int> ft(it_ft, ite);
     std::vector<int> stl(it_stl, ite);
 
-    expect_eq_vector(stl, ft);
+    expect_eq_stl_to_ft(stl, ft);
 }
 
 TEST(Vector, RangeConstructor_ForwardIterator) {
@@ -78,6 +94,14 @@ TEST(Vector, RangeConstructor_ForwardIterator) {
     ft::vector<int> ft(it_ft, it_end);
     std::vector<int> stl(it_stl, it_end);
     
-    debug_print(stl, ft);
-    expect_eq_vector(stl, ft);
+    expect_eq_stl_to_ft(stl, ft);
+}
+
+
+TEST(Vector, CopyConstructor) {
+    size_t size = 10;
+    int value = 5;
+    ft::vector<int> for_copy(size, value);
+    ft::vector<int> ft(for_copy);
+    expect_eq_ft(for_copy, ft);
 }

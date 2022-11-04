@@ -52,9 +52,20 @@ class vector
             typename iterator_traits<_InputIter>::iterator_category());
         };
         
-        vector(const vector & x);
-        ~vector(){};
-        vector & operator =(const vector & x);
+        vector(const vector & x) : __alloc_(x.__alloc_)
+        {
+            __start_ =  __allocate_and_copy(x.size(), x.begin(), x.end());
+            __finish_ = __start_ + x.size();
+            __end_of_storage_ = __start_ + x.size();
+        };
+        
+        ~vector(){
+            
+        };
+        vector & operator =(const vector & x)
+        {
+            
+        };
         
         iterator begin() { return __start_; }
         const_iterator begin() const { return __start_; }
@@ -218,6 +229,9 @@ class vector
                 throw;
             }
         }
+        
+        // iteratorから値をコピーする
+        // 戻り値はコピー先の最初のポインタ
         template<typename _ForwardIterator>
         pointer __allocate_and_copy(size_type __n,
                         _ForwardIterator __first, _ForwardIterator __last)
@@ -230,7 +244,7 @@ class vector
             }
             catch(...)
             {
-                __deallocate(__first, __n);
+                __deallocate(__result, __n);
                 throw;
             }
         }
