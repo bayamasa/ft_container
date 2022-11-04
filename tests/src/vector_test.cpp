@@ -32,7 +32,6 @@ void expect_eq_vector(std::vector<T, Allocator>& stl, ft::vector<T, Allocator>& 
     EXPECT_EQ(*stl_it++, *ft_it++);
   }
   EXPECT_TRUE(ft_it == ft.end());
-
   EXPECT_EQ(stl.size(), ft.size());
   EXPECT_EQ(stl.max_size(), ft.max_size());
   EXPECT_EQ(stl.empty(), ft.empty());
@@ -47,8 +46,8 @@ TEST(Vector, DefaultConstructor) {
 TEST(Vector, FillConstructor) {
     size_t size = 10;
     int value = 5;
-    std::vector<int> stl(10, 5);
-    ft::vector<int> ft(10, 5);
+    std::vector<int> stl(size, value);
+    ft::vector<int> ft(size, value);
     
     expect_eq_vector(stl, ft);
 }
@@ -64,5 +63,21 @@ TEST(Vector, RangeConstructor_InputIterator) {
     ft::vector<int> ft(it_ft, ite);
     std::vector<int> stl(it_stl, ite);
 
+    expect_eq_vector(stl, ft);
+}
+
+TEST(Vector, RangeConstructor_ForwardIterator) {
+    size_t size = 10;
+    int value = 5;
+    std::vector<int> for_iter(size, value);
+
+    std::vector<int>::iterator it_ft = for_iter.begin();
+    std::vector<int>::iterator it_stl = for_iter.begin();
+    std::vector<int>::iterator it_end = for_iter.end();
+  
+    ft::vector<int> ft(it_ft, it_end);
+    std::vector<int> stl(it_stl, it_end);
+    
+    debug_print(stl, ft);
     expect_eq_vector(stl, ft);
 }
