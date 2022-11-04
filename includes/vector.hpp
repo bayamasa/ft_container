@@ -1,13 +1,14 @@
 #ifndef VECTOR_HPP
 # define VECTOR_HPP
 
-#include <stdexcept>
 #include <memory>
 #include "type_traits.hpp"
 #include "iterator.hpp"
 #include "iterator_traits.hpp"
 #include "reverse_iterator.hpp"
 #include <deque>
+#include <iostream>
+#include <vector>
 #include <limits>
 
 namespace ft
@@ -47,7 +48,8 @@ class vector
                 typename ft::enable_if<!ft::is_integral<_InputIter>::value>::type* = NULL) 
         : __start_(NULL), __finish_(NULL), __end_of_storage_(NULL),__alloc_(__a)
         {
-            __range_initialize(__first, __last, iterator_traits<_InputIter>::iterator_category);
+            __range_initialize(__first, __last, 
+            typename iterator_traits<_InputIter>::iterator_category());
         };
         
         vector(const vector & x);
@@ -151,12 +153,12 @@ class vector
         
         void push_back(const_reference value) {
             // 予約メモリーが足りなければ拡張
-            if (size() + 1 > capacity()) {
+            if (size() == capacity()) {
                 __realloc_insert(end(), value);
             }
             else
             {
-                construct(__finish_, value);
+                __alloc_.construct(__finish_, value);
                 ++__finish_;
             }
             
@@ -288,26 +290,34 @@ class vector
             __alloc_.deallocate(__first, __n);
         }
 
-        void destroy(pointer ptr) {
-            __alloc_traits::destroy(__alloc_, ptr);
+        void __destroy(pointer __first, pointer __last) {
+            for (; __first != __last; (void)++__first) 
+                __alloc_.destroy(__first);
         }
         void destroy_until(reverse_iterator rend) {
             for (reverse_iterator riter = rbegin(); riter != rend; ++riter, --__finish_) {
-                destroy(&*riter);
+                __alloc_.destroy(&*riter);
             }
         }
         void __realloc_insert(iterator __position, const_reference __x) {
+            if (size() == 0) {
+                __vallocate(1);
+                __finish_ =  __uninitialized_fill_n(__start_, 1, __x);
+                return;
+            }
+            // 現在のsize + 確保予定のsize
             const size_type __len = 
                 __check_len(size_type(1), "vector::realloc_insert");
             pointer __old_start = __start_;
             pointer __old_finish = __finish_;
+            // insert位置から最初の位置までのsize
             const size_type __elems_before = __position - begin();
-            // 箱のメモリ確保
+            // コピー先の箱のメモリ確保
             pointer __new_start = __alloc_.allocate(__len);
             pointer __new_finish = __new_start;
             try
             {
-                // 要素のメモリ確保
+                // insert位置に要素を生成
                 __alloc_.construct(__new_start + __elems_before, __x);
                 __new_finish = __uninitialized_copy(__old_start, __position.base(), __new_start);
                 ++__new_finish;
@@ -317,19 +327,23 @@ class vector
             {
                 if (!__new_finish)
                     __alloc_.destroy(__new_start + __elems_before);
-                else 
-                    __alloc_.destroy(__new_start + __new_finish);
+                else {
+                    __destroy(__new_start, __new_finish);
+                }
                 __deallocate(__new_start, __len);
                 throw;
             }
-            
-            
+            __destroy(__old_start, __old_finish);
+            __deallocate(__old_start, __end_of_storage_ - __old_start);
+            __start_ = __new_start;
+            __finish_ = __new_finish;
+            __end_of_storage_ = __new_start + __len;
         }
         
         size_type __check_len(size_type __n, const char *__s) const {
             if (max_size() - size() < __n)
                 throw std::length_error(__s);
-            // sizeの2倍取る
+            // 現在のsizeの2倍よりも確保予定のサイズが大きい場合はそちらを適用
             const size_type __len = size() + (std::max)(size(), __n);
             // オーバーフローしてたら、max_size適用
             return (__len < size() || __len > max_size()) ? max_size() : __len;

@@ -49,9 +49,10 @@ GTEST_LIBS = 	-lgtest \
 
 
 gtest_run: $(GTEST_DIR) $(NAME) 
-	clang++ -std=c++11 -I$(INC) $(GTEST_INCLUDES) \
-			$(GTEST_LDFLAGS) $(GTEST_LIBS) $(TEST_SRCS) -o test
-	-@./test
+	clang++ -std=c++11 \
+	-g -fsanitize=address -fsanitize=undefined \
+	-I$(INC) $(GTEST_INCLUDES)  $(GTEST_LDFLAGS) $(GTEST_LIBS) $(TEST_SRCS) -o test
+	./test
 	rm -rf test
 	
 

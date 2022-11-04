@@ -2,7 +2,10 @@
 
 #include <vector>
 #include <iostream>
+#include <iterator>
+#include <sstream>
 #include <gtest/gtest.h>
+#include <string>
 
 template <typename T, typename Allocator>
 void debug_print(std::vector<T, Allocator>& stl, ft::vector<T, Allocator>& ft)
@@ -33,7 +36,6 @@ void expect_eq_vector(std::vector<T, Allocator>& stl, ft::vector<T, Allocator>& 
   EXPECT_EQ(stl.size(), ft.size());
   EXPECT_EQ(stl.max_size(), ft.max_size());
   EXPECT_EQ(stl.empty(), ft.empty());
-  debug_print(stl, ft);
 }
 
 TEST(Vector, DefaultConstructor) {
@@ -48,5 +50,19 @@ TEST(Vector, FillConstructor) {
     std::vector<int> stl(10, 5);
     ft::vector<int> ft(10, 5);
     
+    expect_eq_vector(stl, ft);
+}
+
+TEST(Vector, RangeConstructor_InputIterator) {
+    std::stringstream ss;
+    std::stringstream ss2;
+    ss << 1 << 2 << 3;
+    ss2 << 1 << 2 << 3;
+    std::istream_iterator<int> it_stl(ss);
+    std::istream_iterator<int> it_ft(ss2);
+    std::istream_iterator<int> ite;
+    ft::vector<int> ft(it_ft, ite);
+    std::vector<int> stl(it_stl, ite);
+
     expect_eq_vector(stl, ft);
 }
