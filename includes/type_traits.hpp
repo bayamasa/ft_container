@@ -4,18 +4,18 @@
 namespace ft {
 
 template<typename tType, tType v>
-struct integral_constant
+struct __integral_constant
 {
     static const tType value = v;
     typedef tType value_type;
-    typedef integral_constant<tType, v> type;
+    typedef __integral_constant<tType, v> type;
     const value_type operator()() const {
         return value;
     }
 };
 
-typedef integral_constant<bool, true> true_type;
-typedef integral_constant<bool, false> false_type;
+typedef __integral_constant<bool, true> __true_type;
+typedef __integral_constant<bool, false> __false_type;
 
 
 template<typename tType>
@@ -43,43 +43,43 @@ struct remove_cv<const volatile tType>
 };
 
 template<typename>
-struct is_integral_helper : public false_type{};
+struct __is_integral_helper : public __false_type{};
 
 template<>
-struct is_integral_helper<bool> : public true_type{};
+struct __is_integral_helper<bool> : public __true_type{};
 
 template<>
-struct is_integral_helper<char> : public true_type{};
+struct __is_integral_helper<char> : public __true_type{};
 
 template<>
-struct is_integral_helper<signed char> : public true_type{};
+struct __is_integral_helper<signed char> : public __true_type{};
 
 template<>
-struct is_integral_helper<unsigned char> : public true_type{};
+struct __is_integral_helper<unsigned char> : public __true_type{};
 
 template<>
-struct is_integral_helper<wchar_t> : public true_type{};
+struct __is_integral_helper<wchar_t> : public __true_type{};
 
 template<>
-struct is_integral_helper<short> : public true_type{};
+struct __is_integral_helper<short> : public __true_type{};
 
 template<>
-struct is_integral_helper<unsigned short> : public true_type{};
+struct __is_integral_helper<unsigned short> : public __true_type{};
 
 template<>
-struct is_integral_helper<int> : public true_type{};
+struct __is_integral_helper<int> : public __true_type{};
 
 template<>
-struct is_integral_helper<unsigned int> : public true_type{};
+struct __is_integral_helper<unsigned int> : public __true_type{};
 
 template<>
-struct is_integral_helper<long> : public true_type{};
+struct __is_integral_helper<long> : public __true_type{};
 
 template<>
-struct is_integral_helper<unsigned long> : public true_type{};
+struct __is_integral_helper<unsigned long> : public __true_type{};
 
 template<typename tType>
-struct is_integral : public is_integral_helper<typename remove_cv<tType>::type>::type
+struct is_integral : public __is_integral_helper<typename remove_cv<tType>::type>::type
 {};
 
 template<bool tCond, typename tType = void>
