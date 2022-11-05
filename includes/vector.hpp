@@ -159,6 +159,7 @@ class vector
         template <class InputIterator>
         void assign(InputIterator first, InputIterator last)
         {
+            // integralかチェック
         }
         
         void assign(size_type __n, const T& __val)
@@ -211,9 +212,8 @@ class vector
         
         void swap(vector& x)
         {
-            
-        }
-        ;
+            __swap_data(x);
+        };
         
         void clear() {
             destroy_until(rend());
@@ -386,6 +386,18 @@ class vector
             return (__len < size() || __len > max_size()) ? max_size() : __len;
         }
         
+        void __swap_data(vector & __x) {
+            vector __tmp;
+            __tmp.__copy_data(*this);
+            __copy_data(__x);
+            __x.__copy_data(__tmp);
+        }
+        
+        void __copy_data(vector const& __x) {
+            __start_ = __x.__start_;
+            __finish_ = __x.__finish_;
+            __end_of_storage_ = __x.__end_of_storage_;
+        }
 };
 
 }

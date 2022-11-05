@@ -105,3 +105,21 @@ TEST(Vector, CopyConstructor) {
     ft::vector<int> ft(for_copy);
     expect_eq_ft(for_copy, ft);
 }
+
+
+
+TEST(Vector, Swap) {
+    ft::vector<std::string> target;
+    target.push_back("1");
+    target.push_back("2");
+    target.push_back("3");
+    ft::vector<std::string> swapper;
+    target.swap(swapper);
+    
+    EXPECT_TRUE(target.empty());
+    ft::vector<std::string>::iterator itr = swapper.begin();
+    EXPECT_EQ(*itr++, "1");
+    EXPECT_EQ(*itr++, "2");
+    EXPECT_EQ(*itr++, "3");
+    EXPECT_TRUE(itr == swapper.end());
+}
