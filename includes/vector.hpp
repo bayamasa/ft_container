@@ -157,9 +157,28 @@ class vector
         { return __finish_ - 1; }
         
         template <class InputIterator>
-        void assign(InputIterator first, InputIterator last); 
+        void assign(InputIterator first, InputIterator last)
+        {
+        }
         
-        void assign(size_type n, const T& u);
+        void assign(size_type __n, const T& __val)
+        {
+            if (__n > capacity())
+            {
+                //swap
+            }
+            else if (__n > size())
+            {
+                std::fill(begin(), end(), __val);
+                const size_type __add = __n - size();
+                __finish_ = __uninitialized_fill_n(__finish_, __add, __val);
+            }
+            else 
+            {
+                // 元々ある余分なものを削除
+            }
+            
+        };
         
         
         void push_back(const_reference value) {
@@ -190,7 +209,11 @@ class vector
         iterator erase(iterator position);
         iterator erase(iterator first, iterator last);
         
-        void swap(vector& x);
+        void swap(vector& x)
+        {
+            
+        }
+        ;
         
         void clear() {
             destroy_until(rend());
