@@ -60,7 +60,8 @@ class vector
         };
         
         ~vector(){
-            
+            __destroy(__start_, __finish_);
+            __deallocate(__start_, __end_of_storage_ - __start_);
         };
         vector & operator =(const vector & x)
         {
@@ -112,6 +113,7 @@ class vector
             if (capacity() < __n) {
                 const size_type __old_size = size();
                 pointer __tmp = __allocate_and_copy(__n, __start_, __finish_);
+                __destroy(__start_, __finish_);
                 __deallocate(__start_, __end_of_storage_ - __start_);
                 __start_ = __tmp;
                 __finish_ = __tmp + __old_size;
@@ -156,29 +158,17 @@ class vector
         const_reference back() const
         { return __finish_ - 1; }
         
-        template <class InputIterator>
-        void assign(InputIterator first, InputIterator last)
+        template <class _InputIterator>
+        void assign(_InputIterator __first, _InputIterator __last)
         {
             // integralかチェック
+            typedef typename ft::is_integral<_InputIterator> _Integral;
+            __assign_dispatch(__first, __last, _Integral);
         }
         
         void assign(size_type __n, const T& __val)
         {
-            if (__n > capacity())
-            {
-                //swap
-            }
-            else if (__n > size())
-            {
-                std::fill(begin(), end(), __val);
-                const size_type __add = __n - size();
-                __finish_ = __uninitialized_fill_n(__finish_, __add, __val);
-            }
-            else 
-            {
-                // 元々ある余分なものを削除
-            }
-            
+            __fill_assign(__n, __val);
         };
         
         
@@ -192,15 +182,29 @@ class vector
                 __alloc_.construct(__finish_, value);
                 ++__finish_;
             }
-            
         }
         
         void pop_back();
         
-        iterator insert(iterator position, const T& x);
+        iterator insert(iterator __position, const T& __x) {
+            const size_type __n = __position - begin();
+            if (__finish_ != __end_of_storage_) {
+                if (__position == end()) {
+                    __alloc_.construct(__finish_, __x);
+                    ++__finish_;
+                } else {
+                    __insert_aux(__position, __x);
+                }
+            } else {
+                __realloc_insert(__position, __x);
+            }
+            return iterator(__start_ + __n);
+        }
         
-        void insert(iterator position,
-            size_type n, const T& x);    
+        void insert(iterator __position,
+            size_type __n, const_reference __x) {
+                
+            }
         
         template <class InputIterator>
         void insert(iterator position,
@@ -216,16 +220,11 @@ class vector
         };
         
         void clear() {
-            destroy_until(rend());
+            __erase_at_end(__start_);
         }
         
-        allocator_type get_allocator() const;
-        
-        void construct(pointer ptr) {
-            __alloc_traits::construct(__alloc_, ptr);
-        }
-        void construct(pointer ptr, const_reference value) {
-            __alloc_traits::construct(__alloc_, ptr, value);
+        allocator_type get_allocator() const {
+            return __alloc_;
         }
         
     private: 
@@ -397,6 +396,89 @@ class vector
             __start_ = __x.__start_;
             __finish_ = __x.__finish_;
             __end_of_storage_ = __x.__end_of_storage_;
+        }
+        
+        void __erase_at_end(pointer __pos) {
+            if (size_type __n = __finish_ - __pos) {
+                __destroy(__pos, __finish_);
+                __finish_ = __pos;
+            }
+        }
+        
+        void __assign_dispatch(size_type __n, const T& __val, __true_type) {
+            __fill_assign(__n, __val);
+        }
+        
+        void __assign_dispatch(size_type __n, const T& __val, __false_type) {
+            __assign_aux(__n, __val, typename iterator_traits<_InputIter>::iterator_category());
+        }
+        
+        template<typename _InputIterator>
+        void __assign_aux(_InputIterator __first, _InputIterator __last, std::input_iterator_tag)
+        {
+            pointer __cur = __start_;
+            for (; __first != __last && __cur != __finish_; ++__cur, (void)++__first)
+                *__cur = *__first;
+            if (__first == __last)
+                __erase_at_end(__cur);
+            else
+                __range_insert(end(), __first, __last, 
+                typename iterator_traits<_InputIter>::iterator_category())
+        }
+        
+        template<typename _ForwardIterator>
+        void __assign_aux(_ForwardIterator __first, _ForwardIterator __last, std::forward_iterator_tag)
+        {
+            const size_type __len = std::distance(__first, __last);
+            if (__len > capacity()) {
+                __check_len(__len, "vector::assign");
+                pointer __tmp = __allocate_and_copy(__len, __first, __last);
+                __destroy(__start_, __finish_);
+                __deallocate(__start_, __end_of_storage_ - __start_);
+                __start_ = __tmp;
+                __finish_ = __tmp + __len;
+                __end_of_storage_ = __finish_;   
+            } else if (size() >= __len) {
+                __erase_at_end(std::copy(__first, __last, __start_));
+            } else {
+                _ForwardIterator __mid = __first;
+                std::advance(__mid, size());
+                std::copy(__first, __mid, __start_);
+                const size_type __n = __len - size();
+                __finish_ = __uninitialized_copy(__mid, __last, __finish_);
+            }
+        }
+        
+        void __fill_assign(size_type __n, const T& __val)
+        {
+            // capより大きい要素数だったら丸々入れ替え
+            if (__n > capacity())
+            {
+                vector __tmp(__n, __val, get_allocator());
+                __swap_data(__tmp);
+            }
+            else if (__n > size())
+            {
+                std::fill(begin(), end(), __val);
+                const size_type __add = __n - size();
+                __finish_ = __uninitialized_fill_n(__finish_, __add, __val);
+            }
+            else 
+            {
+                // 元々ある余分なものを削除
+                std::fill_n(__start_, __n, __val);
+                __erase_at_end(__start_ + __n);
+            }
+        }
+        
+        void __insert_aux(iterator __position, const_reference __x) {
+            __alloc_.construct(__finish_, *(__finish_ - 1));
+            ++__finish_;
+            value_type __x_copy = __x;
+            // position以降の要素を一つ後ろにずらす
+            std::copy_backward(__position.base(), __finish_ - 2, __finish_ - 1);
+            // positionにある要素を上書き
+            *__position = __x_copy;
         }
 };
 

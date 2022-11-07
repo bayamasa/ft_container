@@ -52,6 +52,17 @@ void expect_eq_ft(ft::vector<T, Allocator>& ft_1, ft::vector<T, Allocator>& ft_2
   EXPECT_EQ(ft_1.capacity(), ft_2.capacity());
 }
 
+template <typename T, typename Allocator>
+void expect_size_value_cap(ft::vector<T, Allocator>&ft, size_t size, T value, size_t cap)
+{
+  typename ft::vector<T, Allocator>::iterator itr = ft.begin();
+  EXPECT_EQ(ft.size(), size);
+  EXPECT_EQ(ft.capacity(), cap);
+  while (itr != ft.end()) {
+    EXPECT_EQ(*itr++, value);
+  }
+}
+
 
 TEST(Vector, DefaultConstructor) {
     std::vector<int> stl;
@@ -106,9 +117,44 @@ TEST(Vector, CopyConstructor) {
     expect_eq_ft(for_copy, ft);
 }
 
+TEST(Vector, reserve) {
+    size_t size = 3;
+    int value = 5;
+    size_t cap = 9;
+    ft::vector<int> target(size, value);
+    
+    target.reserve(cap);
+    expect_size_value_cap(target, size, value, cap);
+}
+
+TEST(Vector, assign){
+    size_t size = 3;
+    int value = 5;
+    size_t cap = 5;
+    ft::vector<int> target(size, value);
+    target.reserve(cap);
+    
+    // capより大きいケース
+    size_t next_size = 7;
+    int next_value = 10;
+    target.assign(next_size, next_value);
+    expect_size_value_cap(target, next_size, next_value, next_size);
+    
+    // sizeより大きいケース
+    size_t next_cap = 10;
+    target.reserve(next_cap);
+    next_size = 8;
+    target.assign(next_size, next_value);
+    expect_size_value_cap(target, next_size, next_value, next_cap);
+    
+    // sizeより小さいケース
+    next_size = 3;
+    target.assign(next_size, next_value);
+    expect_size_value_cap(target, next_size, next_value, next_cap);
+}
 
 
-TEST(Vector, Swap) {
+TEST(Vector, swap) {
     ft::vector<std::string> target;
     target.push_back("1");
     target.push_back("2");
