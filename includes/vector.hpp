@@ -203,13 +203,17 @@ class vector
         
         void insert(iterator __position,
             size_type __n, const_reference __x) {
-                
-            }
+            __fill_insert(__position, __n, __x);
+        }
         
-        template <class InputIterator>
-        void insert(iterator position,
-            InputIterator first,
-            InputIterator last);
+        template <class _InputIterator>
+        void insert(iterator __position,
+            _InputIterator __first,
+            _InputIterator __last);
+        {
+            typedef typename ft::is_integral<_InputIterator> _Integral;
+            __insert_dispatch(__position, __first, __last, _Integral);
+        }
 
         iterator erase(iterator position);
         iterator erase(iterator first, iterator last);
@@ -479,6 +483,64 @@ class vector
             std::copy_backward(__position.base(), __finish_ - 2, __finish_ - 1);
             // positionにある要素を上書き
             *__position = __x_copy;
+        }
+        
+        void __fill_insert(iterator __position, size_type __n, const_reference __x) {
+            if (__n != 0)
+            {
+                // 確保してあるメモリ数がinsertする数より多い場合
+                // allocateの必要なし
+                if (size_type(__end_of_storage_ - __finish_) >= __n) {
+                    value_type __x_copy = __x;
+                    const size_type __elems_after = end() - __position;
+                    pointer __old_finish = __finish_;
+                    // 連続でコピーしたときにfinishをはみ出ない → null参照しないことが確定
+                    if (__elems_after > __n) {
+                        // finish以降を確定させる
+                        // 前からコピーするとどっかでfinishから飛び出し、null参照が確定するので
+                        __uninitialized_copy(__finish_ - __n, __finish_, __finish_);
+                        __finish_ += __n;
+                        // コピーによるoverlapを防ぐために後ろからコピー
+                        std::copy_backward(__position.base(), __old_finish - __n, __old_finish);
+                        std::fill(__position.base(), __position.base() + __n, __x_copy);
+                    } else {
+                        
+                        __finish_ = __uninitialized_fill_n(__finish_, __n - __elems_after, __x_copy);
+                        __uninitialized_copy(__position.base(), __old_finish, __finish_);
+                        __finish_ += __elems_after;
+                        std::fill(__position.base(), __old_finish, __x_copy);
+                    }
+                } else {
+                    const size_type __len = __check_len(__n, "vector::__fill_insert");
+                    const size_type __elems_before = __position - begin();
+                    pointer __new_start = __alloc_.allocate(__len);
+                    pointer __new_finish = __new_start;
+                    try
+                    {
+                        __uninitialized_fill_n(__new_start + 
+                        __elems_before, __n, __x);
+                        // __uninitialized_copyで例外が発生したときのcatchの判定ができなくなるため、一旦nullptr化
+                        __new_finish = pointer();
+                        __new_finish = __uninitialized_copy(__start_, __position.base(), __new_start);
+                        __new_finish += __n;
+                        __new_finish = __uninitialized_copy(__position.base(), __finish_, __new_finish);
+                    }
+                    catch(...)
+                    {
+                        if (!__new_finish)
+                            __destroy(__new_start + __elems_before, __new_start + __elems_before + __n);
+                        else
+                            __destroy(__new_start, __new_finish);
+                        __deallocate(__new_start, __len);
+                        __destroy(__start_, __finish_);
+                        __deallocate(__start_, __end_of_storage_ - __start_);
+                        __start_ = __new_start;
+                        __finish_ = __new_finish;
+                        __end_of_storage_ = __new_start + __len;
+                    }
+                    
+                }
+            }
         }
 };
 
