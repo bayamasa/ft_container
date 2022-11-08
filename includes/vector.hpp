@@ -175,7 +175,14 @@ class vector
             }
         }
         
-        void pop_back();
+        void pop_back()
+        {
+            // 空の仕様は未定義だが早期return
+            if (empty())
+                return ;
+            --__finish_;
+            __alloc_.destroy(__finish_);
+        }
         
         iterator insert(iterator __position, const T& __x) {
             const size_type __n = __position - begin();
