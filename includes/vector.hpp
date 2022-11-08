@@ -63,10 +63,7 @@ class vector
             __destroy(__start_, __finish_);
             __deallocate(__start_, __end_of_storage_ - __start_);
         };
-        vector & operator =(const vector & x)
-        {
-            
-        };
+        vector & operator =(const vector & x);
         
         iterator begin() { return __start_; }
         const_iterator begin() const { return __start_; }
@@ -86,18 +83,18 @@ class vector
                                  std::numeric_limits<difference_type>::max());
         }
                     
-        void resize(size_type sz, value_type c = value_type()) {
-            if (sz < size()) {
-                size_type diff = size() - sz;
-                destroy_until(rbegin() + diff);
-                __finish_ = __start_ + sz;
-            } else if ( sz > size()) {
-                reserve(sz);
-                for (; __finish_ != __end_of_storage_; ++__finish_) {
-                    construct(__finish_, c);
-                }
-            }
-        }
+        // void resize(size_type sz, value_type c = value_type()) {
+        //     if (sz < size()) {
+        //         size_type diff = size() - sz;
+        //         destroy_until(rbegin() + diff);
+        //         __finish_ = __start_ + sz;
+        //     } else if ( sz > size()) {
+        //         reserve(sz);
+        //         for (; __finish_ != __end_of_storage_; ++__finish_) {
+        //             construct(__finish_, c);
+        //         }
+        //     }
+        // }
         
         size_type capacity() const {
             return size_type(__end_of_storage_ - __start_);
@@ -163,7 +160,7 @@ class vector
         {
             // integralかチェック
             typedef typename ft::is_integral<_InputIterator> _Integral;
-            __assign_dispatch(__first, __last, _Integral);
+            __assign_dispatch(__first, __last, _Integral());
         }
         
         void assign(size_type __n, const T& __val)
@@ -209,10 +206,10 @@ class vector
         template <class _InputIterator>
         void insert(iterator __position,
             _InputIterator __first,
-            _InputIterator __last);
+            _InputIterator __last)
         {
             typedef typename ft::is_integral<_InputIterator> _Integral;
-            __insert_dispatch(__position, __first, __last, _Integral);
+            __insert_dispatch(__position, __first, __last, _Integral());
         }
 
         iterator erase(iterator position);
@@ -413,8 +410,10 @@ class vector
             __fill_assign(__n, __val);
         }
         
+        template<typename _InputIterator>
         void __assign_dispatch(size_type __n, const T& __val, __false_type) {
-            __assign_aux(__n, __val, typename iterator_traits<_InputIter>::iterator_category());
+            __assign_aux(__n, __val, 
+            typename iterator_traits<_InputIterator>::iterator_category());
         }
         
         template<typename _InputIterator>
@@ -426,8 +425,8 @@ class vector
             if (__first == __last)
                 __erase_at_end(__cur);
             else
-                __range_insert(end(), __first, __last, 
-                typename iterator_traits<_InputIter>::iterator_category())
+                __range_insert(end(), __first, __last,
+                typename iterator_traits<_InputIterator>::iterator_category());
         }
         
         template<typename _ForwardIterator>
@@ -475,6 +474,18 @@ class vector
             }
         }
         
+        template <typename _Integer>
+        void __insert_dispatch(iterator __pos, _Integer __n, _Integer __val) {
+            __fill_insert(__pos, __n, __val);
+        }
+        
+        template <typename _InputIterator>
+        void __insert_dispatch(iterator __pos, 
+        _InputIterator __first, _InputIterator __last, __false_type) {
+            __range_insert(__pos, __first, __last, 
+            typename iterator_traits<_InputIterator>::iterator_category());
+        }
+        
         void __insert_aux(iterator __position, const_reference __x) {
             __alloc_.construct(__finish_, *(__finish_ - 1));
             ++__finish_;
@@ -483,6 +494,68 @@ class vector
             std::copy_backward(__position.base(), __finish_ - 2, __finish_ - 1);
             // positionにある要素を上書き
             *__position = __x_copy;
+        }
+        
+        template <typename _InputIterator>
+        void __range_insert(iterator __pos, _InputIterator __first, _InputIterator __last,
+            std::input_iterator_tag)
+        {
+            if (__pos == end()) {
+                for (; __first != __last; ++__first)
+                    insert(end(), *__first);
+            } else if (__first != __last) {
+                vector __tmp(__first, __last, get_allocator());
+                insert(__pos, __tmp.begin(), __tmp.end());
+            }
+        }
+        
+        template <typename _ForwardIterator>
+        void __range_insert(iterator __position, _ForwardIterator __first, _ForwardIterator __last,
+            std::forward_iterator_tag)
+        {
+            if (__first != __last) {
+                const size_type __n = std::distance(__first, __last);
+                if (size_type(__end_of_storage_ - __finish_) >= __n)
+                {
+                    const size_type __elems_after = end() - __position;
+                    pointer __old_finish = __finish_;
+                    if (__elems_after > __n) {
+                        __uninitialized_copy(__finish_ - __n, __finish_, __finish_);
+                        __finish_ += __n;
+                        std::copy_backward(__position.base(), __old_finish - __n, __old_finish);
+                        std::copy(__first, __last, __position);
+                    } else {
+                        _ForwardIterator __mid = __first;
+                        std::advance(__mid, __elems_after);
+                        __uninitialized_copy(__mid, __last, __finish_);
+                        __finish_ += __n - __elems_after;
+                        __uninitialized_copy(__position.base(), __old_finish, __finish_);
+                        __finish_ += __elems_after;
+                        std::copy(__first, __mid, __position);
+                    }
+                } else {
+                    // 今のサイズ + 追加のiterのdistance
+                    const size_type __len = __check_len(__n, "vector::range_insert");
+                    pointer __new_start = __alloc_.allocate(__len);
+                    pointer __new_finish = __new_start;
+                    try
+                    {
+                        __new_finish = __uninitialized_copy(__start_, __position.base(), __new_start);
+                        __new_finish = __uninitialized_copy(__first, __last, __new_finish);
+                        __new_finish = __uninitialized_copy(__position.base(), __finish_, __new_finish);
+                    }
+                    catch(...)
+                    {
+                        __destroy(__new_start, __new_finish);
+                        __deallocate(__new_start, __len);
+                    }
+                    __destroy(__start_, __finish_);
+                    __deallocate(__start_, __end_of_storage_ - __start_);
+                    __start_ = __new_start;
+                    __finish_ = __new_finish;
+                    __end_of_storage_ = __new_start + __len;
+                }
+            }
         }
         
         void __fill_insert(iterator __position, size_type __n, const_reference __x) {
@@ -538,7 +611,6 @@ class vector
                         __finish_ = __new_finish;
                         __end_of_storage_ = __new_start + __len;
                     }
-                    
                 }
             }
         }
