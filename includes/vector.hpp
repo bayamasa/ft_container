@@ -63,7 +63,34 @@ class vector
             __destroy(__start_, __finish_);
             __deallocate(__start_, __end_of_storage_ - __start_);
         };
-        vector & operator =(const vector & x);
+
+        vector & operator=(const vector & __x)
+        {
+            if (&__x != this) {
+                const size_type __xlen = __x.size();
+                if (__xlen > capacity()) {
+                    pointer __tmp = __allocate_and_copy(__xlen, __x.begin(), __x.end());
+                    __destroy(__start_, __finish_);
+                    __deallocate(__start_, __end_of_storage_ - __start_);
+                    __start_ = __tmp;
+                    __end_of_storage_ = __start_ + __xlen;
+                } else if (size() >= __xlen) {
+                    // copyの戻り値が_x.end()の次の要素なのでendまで消す
+                    __destroy(std::copy(__x.begin(), __x.end(), begin()), end());
+
+                // __xlen <= capacity() && size() < __xlen
+                // capはあるのでallocateが不要な条件
+                } else {
+                    // size分はメモリが確保されているのでそのままcopy
+                    std::copy(__x.__start_, __x.__start_ + size(), __start_);
+                    // size以降はallocateしながらcopy
+                    __uninitialized_copy(__x.__start_ + size(), 
+                                    __x.__finish_, __finish_);
+                }
+                __finish_ = __start_ + __xlen;
+            }
+            return *this;
+        }
         
         iterator begin() { return __start_; }
         const_iterator begin() const { return __start_; }
