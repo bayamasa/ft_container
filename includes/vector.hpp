@@ -83,18 +83,12 @@ class vector
                                  std::numeric_limits<difference_type>::max());
         }
                     
-        // void resize(size_type sz, value_type c = value_type()) {
-        //     if (sz < size()) {
-        //         size_type diff = size() - sz;
-        //         destroy_until(rbegin() + diff);
-        //         __finish_ = __start_ + sz;
-        //     } else if ( sz > size()) {
-        //         reserve(sz);
-        //         for (; __finish_ != __end_of_storage_; ++__finish_) {
-        //             construct(__finish_, c);
-        //         }
-        //     }
-        // }
+        void resize(size_type __new_size, value_type __x = value_type()) {
+            if (__new_size > size())
+                __fill_insert(end(), __new_size - size(), __x);
+            else if (__new_size < size())
+                __erase_at_end(__start_ + __new_size());
+        }
         
         size_type capacity() const {
             return size_type(__end_of_storage_ - __start_);
@@ -212,8 +206,15 @@ class vector
             __insert_dispatch(__position, __first, __last, _Integral());
         }
 
-        iterator erase(iterator position);
-        iterator erase(iterator first, iterator last);
+        iterator erase(iterator __position)
+        {
+            __erase(__position);
+        }
+        
+        iterator erase(iterator __first, iterator __last)
+        {
+            __erase(__first, __last);
+        }
         
         void swap(vector& x)
         {
@@ -613,6 +614,25 @@ class vector
                     }
                 }
             }
+        }
+        
+        iterator __erase(iterator __position) {
+            if (__position + 1 != end())
+                // 最後の要素でなければ、一個ずつ前にずらす
+                std::copy(__position + 1, end(), __position);
+            --__finish_;
+            __alloc_.destroy(__finish_);
+            return __position;
+        }
+        
+        iterator __erase(iterator __first, iterator __last) {
+            if (__first != __last) {
+                if (__last != end())
+                    // 範囲外のelems_afterを退避
+                    std::copy(__last, end(), __first);
+                __erase_at_end(__first.base() + (end() - __last));
+            }   
+            return __first;
         }
 };
 
