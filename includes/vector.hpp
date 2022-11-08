@@ -670,6 +670,16 @@ class vector
         }
 };
 
+    template<typename _T, typename _Alloc>
+    bool operator==(const vector<_T, _Alloc>& __x, const vector<_T, _Alloc>& __y)
+    {
+        return (__x.size() == __y.size() 
+                && ft::equal(__x.begin(), __x.end(), __y.begin()));
+    }
+    
+    
+
+
 }
 
 #endif
