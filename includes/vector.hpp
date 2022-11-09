@@ -283,7 +283,7 @@ class vector
                 }
                 return __cur;
             } catch(...) {
-                for (; __cur != __first; (void) ++__first) 
+                for (; __cur != __first; ++__first) 
                     __alloc_.destroy(__first);
                 throw;
             }
@@ -319,7 +319,7 @@ class vector
                 }
                 return __cur;
             } catch(...) {
-                for (; __cur != __result; (void)++__result) 
+                for (; __cur != __result; ++__result) 
                     __alloc_.destroy(__result);
                 throw;
             }
@@ -364,7 +364,7 @@ class vector
         }
 
         void __destroy(pointer __first, pointer __last) {
-            for (; __first != __last; (void)++__first) 
+            for (; __first != __last; ++__first) 
                 __alloc_.destroy(__first);
         }
         void destroy_until(reverse_iterator rend) {
