@@ -80,7 +80,7 @@ class vector
                     __end_of_storage_ = __start_ + __xlen;
                 } else if (size() >= __xlen) {
                     // copyの戻り値が_x.end()の次の要素なのでendまで消す
-                    __destroy(std::copy(__x.begin(), __x.end(), begin()), end());
+                    __destroy(std::copy(__x.begin(), __x.end(), __start_), __finish_);
 
                 // __xlen <= capacity() && size() < __xlen
                 // capはあるのでallocateが不要な条件
@@ -116,9 +116,9 @@ class vector
                     
         void resize(size_type __new_size, value_type __x = value_type()) {
             if (__new_size > size())
-                __fill_insert(end(), __new_size - size(), __x);
+                __fill_insert(__finish_, __new_size - size(), __x);
             else if (__new_size < size())
-                __erase_at_end(__start_ + __new_size());
+                __erase_at_end(__start_ + __new_size);
         }
         
         size_type capacity() const {
@@ -246,12 +246,12 @@ class vector
 
         iterator erase(iterator __position)
         {
-            __erase(__position);
+            return __erase(__position);
         }
         
         iterator erase(iterator __first, iterator __last)
         {
-            __erase(__first, __last);
+            return __erase(__first, __last);
         }
         
         void swap(vector& x)
@@ -450,8 +450,8 @@ class vector
         }
         
         template<typename _InputIterator>
-        void __assign_dispatch(size_type __n, const T& __val, __false_type) {
-            __assign_aux(__n, __val, 
+        void __assign_dispatch(_InputIterator __first, _InputIterator __last, __false_type) {
+            __assign_aux(__first, __last, 
             typename iterator_traits<_InputIterator>::iterator_category());
         }
         
@@ -516,7 +516,7 @@ class vector
         }
         
         template <typename _Integer>
-        void __insert_dispatch(iterator __pos, _Integer __n, _Integer __val) {
+        void __insert_dispatch(iterator __pos, _Integer __n, _Integer __val, __true_type) {
             __fill_insert(__pos, __n, __val);
         }
         
@@ -646,12 +646,13 @@ class vector
                         else
                             __destroy(__new_start, __new_finish);
                         __deallocate(__new_start, __len);
-                        __destroy(__start_, __finish_);
-                        __deallocate(__start_, __end_of_storage_ - __start_);
-                        __start_ = __new_start;
-                        __finish_ = __new_finish;
-                        __end_of_storage_ = __new_start + __len;
+
                     }
+                    __destroy(__start_, __finish_);
+                    __deallocate(__start_, __end_of_storage_ - __start_);
+                    __start_ = __new_start;
+                    __finish_ = __new_finish;
+                    __end_of_storage_ = __new_start + __len;
                 }
             }
         }
@@ -686,7 +687,7 @@ class vector
     template<typename _Tp, typename _Alloc>
     bool
     operator<(const vector<_Tp, _Alloc>& __x, const vector<_Tp, _Alloc>& __y)
-    { return ft::lexicographical_compare(__x.begin(), __x.end(),
+    { return std::lexicographical_compare(__x.begin(), __x.end(),
                     __y.begin(), __y.end()); }
     /// Based on operator==
     template<typename _Tp, typename _Alloc>

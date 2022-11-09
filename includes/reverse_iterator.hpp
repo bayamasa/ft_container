@@ -20,26 +20,26 @@ private:
 public:
     reverse_iterator() : _i() {};
     reverse_iterator(iterator_type _x) : _i(_x) {};
-    reverse_iterator(const reverse_iterator& __x) : _i(__x._i) {};
 
     template<class _Up>
-    reverse_iterator(const reverse_iterator<_Up>& __x) : _i(__x._i) {};
+    reverse_iterator(const reverse_iterator<_Up>& __x) : _i(__x.base()) {};
     
     template<typename _Up>
     reverse_iterator& operator=(const reverse_iterator<_Up>& __x) {
-        _i = __x._i;
+        _i = __x.base();
         return *this;
     }
     
-    reference operator*() const {
-        Iter __tmp = _i;
-        return *--__tmp;
+    reference operator*() const { 
+        return *_i; 
     }
 
-    pointer operator->() const {
-        Iter __tmp = _i;
-	    --__tmp;
-        return &(*__tmp);
+    pointer operator->() const { 
+        return &(*_i);
+    }
+
+    reference operator[](difference_type _n) { 
+        return _i[_n];
     }
 
     reverse_iterator& operator++() {

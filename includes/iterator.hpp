@@ -33,13 +33,13 @@ private:
 public:
     wrap_iterator() : _i() {};
     wrap_iterator(iterator_type _x) : _i(_x) {};
-    wrap_iterator(const wrap_iterator& __x) : _i(__x._i) {};
+    
     template<class Up>
-    wrap_iterator(const wrap_iterator<Up>& __x) : _i(__x._i) {};
+    wrap_iterator(const wrap_iterator<Up>& __x) : _i(__x.base()) {};
     
     template<typename Up>
     wrap_iterator& operator=(const wrap_iterator<Up>& __x) {
-        _i = __x._i;
+        _i = __x.base();
         return *this;
     }
     
@@ -65,6 +65,12 @@ public:
     wrap_iterator& operator--() {
         --_i;
         return *this;
+    }
+    
+    wrap_iterator operator--(int) {
+        wrap_iterator _tmp(*this);
+        --(*this);
+        return _tmp;
     }
     
     wrap_iterator operator+ (difference_type _n) const {
