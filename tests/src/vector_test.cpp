@@ -63,7 +63,6 @@ void expect_size_value_cap(ft::vector<T, Allocator>&ft, size_t size, T value, si
   }
 }
 
-
 TEST(Vector, DefaultConstructor) {
     std::vector<int> stl;
     ft::vector<int> ft;
@@ -117,15 +116,110 @@ TEST(Vector, CopyConstructor) {
     expect_eq_ft(for_copy, ft);
 }
 
+TEST(Vector, AssignedOperator) {
+    size_t size = 10;
+    int value = 5;
+    ft::vector<int> for_copy(size, value);
+    ft::vector<int> ft = for_copy;
+    expect_eq_ft(for_copy, ft);
+    
+    size = 5;
+    value = 10;
+    ft::vector<int> ft2(size, value);
+    ft2 = for_copy;
+    expect_eq_ft(for_copy, ft2);
+}
+
+TEST(Vector, Begin) {
+    int value = 1;
+    int value2 = 2;
+    ft::vector<int> ft;
+    ft.push_back(value);
+    ft.push_back(value2);
+    ft::vector<int>::iterator itr = ft.begin();
+    ft::vector<int>::const_iterator citr = ft.begin();
+    EXPECT_EQ(*itr, value);
+    EXPECT_EQ(*citr, value);
+}
+
+TEST(Vector, Rend) {
+    int value = 1;
+    int value2 = 2;
+    ft::vector<int> ft;
+    ft.push_back(value);
+    ft.push_back(value2);
+    ft::vector<int>::reverse_iterator itr = ft.rend();
+    ft::vector<int>::const_reverse_iterator citr = ft.rend();
+    EXPECT_EQ(*itr, value);
+    EXPECT_EQ(*citr, value);
+}
+
+TEST(Vector, End) {
+    int value = 1;
+    int value2 = 2;
+    ft::vector<int> ft;
+    ft.push_back(value);
+    ft.push_back(value2);
+    ft::vector<int>::iterator itr = ft.end();
+    ft::vector<int>::const_iterator citr = ft.end();
+    EXPECT_EQ(*(--itr), value2);
+    EXPECT_EQ(*(--citr), value2);
+}
+
+TEST(Vector, Rbegin) {
+    int value = 1;
+    int value2 = 2;
+    ft::vector<int> ft;
+    ft.push_back(value);
+    ft.push_back(value2);
+    ft::vector<int>::reverse_iterator itr = ft.rbegin();
+    ft::vector<int>::const_reverse_iterator citr = ft.rbegin();
+    EXPECT_EQ(*(++itr), value2);
+    EXPECT_EQ(*(++citr), value2);
+}
+
+TEST(Vector, resize) {
+    size_t size = 3;
+    long value = 10;
+    std::vector<long> stl(3, 10);
+    ft::vector<long> ft(3, 10);
+    
+    // 引数1つ
+    stl.resize(4);
+    ft.resize(4);
+    expect_eq_stl_to_ft(stl, ft);
+    
+    // 縮小
+    stl.resize(2, 5);
+    ft.resize(2, 5);
+    expect_eq_stl_to_ft(stl, ft);
+    
+    // 拡大
+    stl.resize(10, 100);
+    ft.resize(10, 100);
+    expect_eq_stl_to_ft(stl, ft);
+    
+    // 同じ要素, サイズ
+    stl.resize(10, 100);
+    ft.resize(10, 100);
+    expect_eq_stl_to_ft(stl, ft);
+}
+
+
 TEST(Vector, reserve) {
     size_t size = 3;
     int value = 5;
     size_t cap = 9;
     ft::vector<int> target(size, value);
+    std::vector<int> stl(size, value);
     
     target.reserve(cap);
     expect_size_value_cap(target, size, value, cap);
+    
+    expect_eq_stl_to_ft(stl, target);
 }
+
+
 
 TEST(Vector, assign){
     size_t size = 3;
@@ -151,8 +245,143 @@ TEST(Vector, assign){
     next_size = 3;
     target.assign(next_size, next_value);
     expect_size_value_cap(target, next_size, next_value, next_cap);
+    
+    // // 範囲指定 inputstream
+    // std::stringstream ss;
+    // ss << 1 << 2 << 3;
+    // std::istream_iterator<int> it_stl(ss);
+    // std::istream_iterator<int> it_ft(ss);
+    // std::istream_iterator<int> ite;
+    
+    // std::vector<int> stl_2(1, 1);
+    // ft::vector<int> ft_2(1, 1);
+    
+    // // ちゃんとはいってない
+    // ft_2.assign(it_ft, ite);
+    // stl_2.assign(it_stl, ite);
+    // expect_eq_stl_to_ft(stl_2, ft_2);
 }
 
+TEST(Vector, popback) {
+    size_t size = 3;
+    long value = 10;
+    std::vector<long> stl(3, 10);
+    ft::vector<long> ft(3, 10);
+    
+    // 引数1つ
+    stl.pop_back();
+    ft.pop_back();
+    expect_eq_stl_to_ft(stl, ft);
+}
+
+TEST(Vector, insert) {
+    size_t size = 3;
+    long value = 10;
+    std::vector<long> stl(3, 10);
+    ft::vector<long> ft(3, 10);
+    
+    size_t cap = 7;
+    
+    stl.reserve(cap);
+    ft.reserve(cap);
+    // 1.capがある場合
+    // 終端に挿入
+    stl.insert(stl.end(), 1);
+    ft.insert(ft.end(), 1);
+    expect_eq_stl_to_ft(stl, ft);
+    
+    // それ以外
+    std::vector<long>::iterator stl_it = stl.begin();
+    ft::vector<long>::iterator ft_it = ft.begin();
+    stl_it += 2;
+    ft_it += 2;
+
+    stl.insert(stl_it, 1);
+    ft.insert(ft_it, 1);
+    expect_eq_stl_to_ft(stl, ft);
+    
+    // 2.capがない場合
+    stl.resize(3, 3); 
+    ft.resize(3, 3);
+    stl.insert(stl.end(), 1);
+    ft.insert(ft.end(), 1);
+    expect_eq_stl_to_ft(stl, ft);
+    
+    // 3.size指定
+    stl.insert(stl.end(), 5, 3);
+    ft.insert(ft.end(), 5, 3);
+    expect_eq_stl_to_ft(stl, ft);
+    
+    // 4.範囲指定 inputstream
+    std::stringstream ss;
+    ss << 1 << 2 << 3;
+    std::istream_iterator<int> it_stl(ss);
+    std::istream_iterator<int> it_ft(ss);
+    std::istream_iterator<int> ite;
+    
+    std::vector<int> stl_2(3, 3);
+    ft::vector<int> ft_2(3, 3);
+    
+    stl_2.insert(stl_2.end(), it_stl, ite);
+    ft_2.insert(ft_2.end(), it_ft, ite);
+    // debug_print(stl_2, ft_2);
+    // expect_eq_stl_to_ft(stl_2, ft_2);
+}
+
+TEST(Vector, erase) {
+    size_t size = 3;
+    int value = 10;
+    std::vector<int> stl(size, value);
+    ft::vector<int> ft(size, value);
+    
+    std::vector<int>::iterator stl_it = stl.erase(--stl.end());
+    ft::vector<int>::iterator ft_it = ft.erase(--ft.end());
+    expect_eq_stl_to_ft(stl, ft);
+    // pos が最後の要素を参照する場合は、 end() イテレータが返されます。
+    EXPECT_EQ(stl_it, stl.end());
+    EXPECT_EQ(ft_it, ft.end());
+    
+    stl_it = stl.erase(stl.begin());
+    ft_it = ft.erase(ft.begin());
+    expect_eq_stl_to_ft(stl, ft);
+    EXPECT_EQ(stl_it, stl.begin());
+    EXPECT_EQ(ft_it, ft.begin());
+    
+
+    size = 5;
+    value = 10;
+    std::vector<int> stl_2(size, value);
+    ft::vector<int> ft_2(size, value);
+    
+    std::vector<int>::iterator stl_begin = stl_2.begin();
+    std::vector<int>::iterator stl_end = stl_2.end();
+    ft::vector<int>::iterator ft_begin = ft_2.begin();
+    ft::vector<int>::iterator ft_end = ft_2.end();
+    stl_begin++;
+    ft_begin++;
+    stl_end--;
+    ft_end--;
+    
+    stl_it = stl_2.erase(stl_begin, stl_end);
+    ft_it = ft_2.erase(ft_begin, ft_end);
+    stl_it++;
+    ft_it++;
+    expect_eq_stl_to_ft(stl, ft);
+    EXPECT_EQ(stl_it, stl_2.end());
+    EXPECT_EQ(ft_it, ft_2.end());
+    
+}
+
+TEST(Vector, clear) {
+    size_t size = 3;
+    int value = 10;
+    std::vector<int> stl(size, value);
+    ft::vector<int> ft(size, value);
+    stl.clear();
+    ft.clear();
+    
+    expect_eq_stl_to_ft(stl, ft);
+}
 
 TEST(Vector, swap) {
     ft::vector<std::string> target;
@@ -168,4 +397,19 @@ TEST(Vector, swap) {
     EXPECT_EQ(*itr++, "2");
     EXPECT_EQ(*itr++, "3");
     EXPECT_TRUE(itr == swapper.end());
+}
+
+TEST(Vector, operator) {
+    size_t size = 3;
+    int value = 10;
+    ft::vector<int> ft_1(size, value);
+    ft::vector<int> ft_2(size, value);
+    
+    EXPECT_TRUE(ft_1 == ft_2);
+    ft_2.push_back(4);
+    EXPECT_TRUE(ft_1 != ft_2);
+    EXPECT_TRUE(ft_1 < ft_2);
+     
+    ft_1.push_back(5);
+    EXPECT_TRUE(ft_1 > ft_2);
 }
