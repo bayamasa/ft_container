@@ -707,6 +707,10 @@ class vector
     operator>=(const vector<_Tp, _Alloc>& __x, const vector<_Tp, _Alloc>& __y)
     { return !(__x < __y); }
     
+    template<typename _Tp, typename _Alloc>
+    void
+    swap(vector<_Tp, _Alloc>& __x, vector<_Tp, _Alloc>& __y)
+    { __x.swap(__y); }
 }
 
 #endif
