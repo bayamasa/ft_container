@@ -3,7 +3,8 @@ OBJS			= $(SRCS:.cpp=.o)
 
 CXX				= c++
 RM				= rm -f
-CXXFLAGS		= -Wall -Wextra -Werror -I $(INC) -std=c++98 -pedantic -Wshadow 
+CXXFLAGS		= -Wall -Wextra -Werror -I $(INC) -g -std=c++98 -pedantic -Wshadow 
+DEBUG			= -g -fsanitize=address
 INC				= ./includes
 TESTFLAGS		= -DREAL
 

@@ -61,8 +61,11 @@ class vector
         };
         
         ~vector(){
-            __destroy(__start_, __finish_);
-            __deallocate(__start_, __end_of_storage_ - __start_);
+            if (__start_ != NULL)
+            {
+                clear();
+                // __deallocate(__start_, __end_of_storage_ - __start_);
+            }
         };
 
         vector & operator=(const vector & __x)
@@ -493,8 +496,10 @@ class vector
             // capより大きい要素数だったら丸々入れ替え
             if (__n > capacity())
             {
-                vector __tmp(__n, __val, get_allocator());
+                vector<T> __tmp(__n, __val, get_allocator());
                 __swap_data(__tmp);
+                // vector
+                __tmp.__deallocate(__tmp.__start_, __tmp.size());
             }
             else if (__n > size())
             {
