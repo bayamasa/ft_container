@@ -5,6 +5,7 @@
 #include "type_traits.hpp"
 #include "iterator.hpp"
 #include "iterator_traits.hpp"
+#include "algorithm.hpp"
 #include "reverse_iterator.hpp"
 #include <deque>
 #include <iostream>

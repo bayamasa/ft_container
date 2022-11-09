@@ -1,5 +1,5 @@
-#ifndef EQUAL_HPP
-# define EQUAL_HPP
+#ifndef ALGORITHM_HPP
+# define ALGORITHM_HPP
 
 template <class InputIt1, class InputIt2>
 bool equal(InputIt1 first1, InputIt1 last1, InputIt2 first2) {
@@ -18,5 +18,8 @@ bool equal( InputIt1 first1, InputIt1 last1,
             return false;
     return true;
 }
+
+
+
 
 #endif
