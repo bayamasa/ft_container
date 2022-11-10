@@ -370,11 +370,7 @@ class vector
             for (; __first != __last; ++__first) 
                 __alloc_.destroy(__first);
         }
-        void destroy_until(reverse_iterator rend) {
-            for (reverse_iterator riter = rbegin(); riter != rend; ++riter, --__finish_) {
-                __alloc_.destroy(&*riter);
-            }
-        }
+
         void __realloc_insert(iterator __position, const_reference __x) {
             if (size() == 0) {
                 __vallocate(1);
