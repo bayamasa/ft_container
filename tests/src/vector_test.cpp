@@ -222,44 +222,82 @@ TEST(Vector, reserve) {
 
 
 TEST(Vector, assign){
-    size_t size = 3;
+    // size_t size = 3;
+    // int value = 5;
+    // size_t cap = 5;
+    // ft::vector<int> target(size, value);
+    // target.reserve(cap);
+    
+    // // capより大きいケース
+    // size_t next_size = 7;
+    // int next_value = 10;
+    // target.assign(next_size, next_value);
+    // expect_size_value_cap(target, next_size, next_value, next_size);
+    
+    // // sizeより大きいケース
+    // size_t next_cap = 10;
+    // target.reserve(next_cap);
+    // next_size = 8;
+    // target.assign(next_size, next_value);
+    // expect_size_value_cap(target, next_size, next_value, next_cap);
+    
+    // // sizeより小さいケース
+    // next_size = 3;
+    // target.assign(next_size, next_value);
+    // expect_size_value_cap(target, next_size, next_value, next_cap);
+    
+    // 範囲指定 inputstream
+    std::stringstream ss;
+    std::stringstream ss2;
+    ss << 1 << 2 << 3;
+    ss2 << 1 << 2 << 3;
+    std::istream_iterator<int> it_stl(ss);
+    std::istream_iterator<int> it_ft(ss2);
+    std::istream_iterator<int> ite;
+    
+    std::vector<int> stl_2(3, 1);
+    ft::vector<int> ft_2(3, 1);
+    
+    // ちゃんとはいってない
+    ft_2.assign(it_ft, ite);
+    stl_2.assign(it_stl, ite);
+    expect_eq_stl_to_ft(stl_2, ft_2);
+    
+    // 範囲 forward iter
+    size_t size = 10;
     int value = 5;
-    size_t cap = 5;
-    ft::vector<int> target(size, value);
-    target.reserve(cap);
+    std::vector<int> for_iter(size, value);
+
+    std::vector<int>::iterator it_ft_3 = for_iter.begin();
+    std::vector<int>::iterator it_stl_3 = for_iter.begin();
+    std::vector<int>::iterator it_end = for_iter.end();
+  
+    // iterがcapより大きい
+    ft::vector<int> ft_3(3,3);
+    std::vector<int> stl_3(3, 3);
+    ft_3.assign(it_ft_3, it_end);
+    stl_3.assign(it_stl_3, it_end);
+    expect_eq_stl_to_ft(stl_3, ft_3);
+
+    // iterがsizeより小さい
+    it_ft_3 = for_iter.begin();
+    it_stl_3 = for_iter.begin();
+    ft::vector<int> ft_4(20,3);
+    std::vector<int> stl_4(20, 3);
+    ft_4.assign(it_ft_3, it_end);
+    stl_4.assign(it_stl_3, it_end);
+    expect_eq_stl_to_ft(stl_4, ft_4);
+    // sizeより大きくcapより小さい
     
-    // capより大きいケース
-    size_t next_size = 7;
-    int next_value = 10;
-    target.assign(next_size, next_value);
-    expect_size_value_cap(target, next_size, next_value, next_size);
-    
-    // sizeより大きいケース
-    size_t next_cap = 10;
-    target.reserve(next_cap);
-    next_size = 8;
-    target.assign(next_size, next_value);
-    expect_size_value_cap(target, next_size, next_value, next_cap);
-    
-    // sizeより小さいケース
-    next_size = 3;
-    target.assign(next_size, next_value);
-    expect_size_value_cap(target, next_size, next_value, next_cap);
-    
-    // // 範囲指定 inputstream
-    // std::stringstream ss;
-    // ss << 1 << 2 << 3;
-    // std::istream_iterator<int> it_stl(ss);
-    // std::istream_iterator<int> it_ft(ss);
-    // std::istream_iterator<int> ite;
-    
-    // std::vector<int> stl_2(1, 1);
-    // ft::vector<int> ft_2(1, 1);
-    
-    // // ちゃんとはいってない
-    // ft_2.assign(it_ft, ite);
-    // stl_2.assign(it_stl, ite);
-    // expect_eq_stl_to_ft(stl_2, ft_2);
+    it_ft_3 = for_iter.begin();
+    it_stl_3 = for_iter.begin();
+    ft::vector<int> ft_5(5,3);
+    std::vector<int> stl_5(5, 3);
+    ft_5.reserve(10);
+    stl_5.reserve(10);
+    ft_5.assign(it_ft_3, it_end);
+    stl_5.assign(it_stl_3, it_end);
+    expect_eq_stl_to_ft(stl_5, ft_5);
 }
 
 TEST(Vector, popback) {
@@ -314,9 +352,11 @@ TEST(Vector, insert) {
     
     // 4.範囲指定 inputstream
     std::stringstream ss;
+    std::stringstream ss2;
     ss << 1 << 2 << 3;
+    ss2 << 1 << 2 << 3;
     std::istream_iterator<int> it_stl(ss);
-    std::istream_iterator<int> it_ft(ss);
+    std::istream_iterator<int> it_ft(ss2);
     std::istream_iterator<int> ite;
     
     std::vector<int> stl_2(3, 3);
@@ -324,8 +364,48 @@ TEST(Vector, insert) {
     
     stl_2.insert(stl_2.end(), it_stl, ite);
     ft_2.insert(ft_2.end(), it_ft, ite);
-    // debug_print(stl_2, ft_2);
-    // expect_eq_stl_to_ft(stl_2, ft_2);
+    expect_eq_stl_to_ft(stl_2, ft_2);
+    
+    // forward iter
+    // iterがsizeより小さい
+    size = 2;
+    value = 5;
+    std::vector<int> for_iter(size, value);
+
+    std::vector<int>::iterator it_ft_3 = for_iter.begin();
+    std::vector<int>::iterator it_stl_3 = for_iter.begin();
+    std::vector<int>::iterator it_end = for_iter.end();
+
+    it_ft_3 = for_iter.begin();
+    it_stl_3 = for_iter.begin();
+    ft::vector<int> ft_4(20,3);
+    std::vector<int> stl_4(20, 3);
+    ft_4.insert(ft_4.begin(), it_ft_3, it_end);
+    stl_4.insert(stl_4.begin(), it_stl_3, it_end);
+    expect_eq_stl_to_ft(stl_4, ft_4);
+    
+    // sizeより大きくcapより小さい
+    // elem_afterが大きい
+    it_ft_3 = for_iter.begin();
+    it_stl_3 = for_iter.begin();
+    ft::vector<int> ft_5(5,3);
+    std::vector<int> stl_5(5, 3);
+    ft_5.reserve(10);
+    stl_5.reserve(10);
+    ft_5.insert(ft_5.begin(), it_ft_3, it_end);
+    stl_5.insert(stl_5.begin(), it_stl_3, it_end);
+    expect_eq_stl_to_ft(stl_5, ft_5);
+    
+    // elem_after < size 
+    it_ft_3 = for_iter.begin();
+    it_stl_3 = for_iter.begin();
+    ft::vector<int> ft_6(5,3);
+    std::vector<int> stl_6(5, 3);
+    ft_6.reserve(10);
+    stl_6.reserve(10);
+    ft_6.insert(ft_6.end(), it_ft_3, it_end);
+    stl_6.insert(stl_6.end(), it_stl_3, it_end);
+    expect_eq_stl_to_ft(stl_6, ft_6);
 }
 
 TEST(Vector, erase) {
@@ -347,7 +427,6 @@ TEST(Vector, erase) {
     EXPECT_EQ(stl_it, stl.begin());
     EXPECT_EQ(ft_it, ft.begin());
     
-
     size = 5;
     value = 10;
     std::vector<int> stl_2(size, value);
